@@ -29,6 +29,7 @@ export const NAVIGATE_ADMIN = {
     PRODUCT :'/products',
     PRODUCT_CREATE :'/products/create',
     PRODUCT_DETAILS :'/products/details',
+    USERS: '/users',
     get DASHBOARD_PAGE() { return `${NAVIGATE_MODULES.ADMIN}${this.DASHBAORD}`; },
   
 }

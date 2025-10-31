@@ -73,7 +73,7 @@ const mockProducts: Product[] = [
         attachments: [
             { id: 'img-1', url: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=800', alt: 'Wireless Mouse - Front View', isPrimary: true },
             { id: 'img-2', url: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800', alt: 'Wireless Mouse - Side View' },
-            { id: 'img-3', url: 'https://images.unsplash.com/photo-1586920740099-e81fc4c14407?w=800', alt: 'Wireless Mouse - Top View' },
+            // { id: 'img-3', url: 'https://images.unsplash.com/photo-1586920740099-e81fc4c14407?w=800', alt: 'Wireless Mouse - Top View' },
             { id: 'img-4', url: 'https://images.unsplash.com/photo-1563297007-0686b7003af7?w=800', alt: 'Wireless Mouse - In Use' },
         ],
         qrCode: 'https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=PRD-001',
@@ -254,60 +254,64 @@ const ProductDetail: React.FC = () => {
             <Grid container spacing={3} sx={{ px: { xs: 2, sm: 3 } }}>
                 <Grid item xs={12} lg={8}>
                     <Card elevation={0} sx={{ mb: 3, overflow: 'hidden' }}>
-                        <Box
-                            sx={{
-                                position: 'relative',
-                                bgcolor: 'grey.50',
-                                aspectRatio: '16/10',
-                                overflow: 'hidden',
-                                cursor: 'zoom-in',
-                            }}
-                            onClick={() => handleLightboxOpen(selectedImage)}
-                        >
-                            <Box
-                                component="img"
-                                src={product.attachments[selectedImage]?.url}
-                                alt={product.attachments[selectedImage]?.alt}
-                                sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'contain',
-                                    transition: 'transform 0.3s',
-                                    '&:hover': { transform: 'scale(1.05)' },
-                                }}
-                            />
-                            <IconButton
-                                sx={{
-                                    position: 'absolute',
-                                    top: 16,
-                                    right: 16,
-                                    bgcolor: 'background.paper',
-                                    '&:hover': { bgcolor: 'background.paper' },
-                                }}
-                            >
-                                <ZoomIn />
-                            </IconButton>
-                            {product.attachments.length > 1 && (
-                                <Chip
-                                    label={`${selectedImage + 1} / ${product.attachments.length}`}
-                                    size="small"
+                        <Grid container spacing={2} sx={{ p: 2 }}>
+                            <Grid item xs={12} sm={9}>
+                                <Box
                                     sx={{
-                                        position: 'absolute',
-                                        bottom: 16,
-                                        right: 16,
-                                        bgcolor: 'rgba(0,0,0,0.6)',
-                                        color: 'white',
+                                        position: 'relative',
+                                        bgcolor: 'grey.50',
+                                        aspectRatio: '16/10',
+                                        overflow: 'hidden',
+                                        cursor: 'zoom-in',
+                                        borderRadius: 2,
                                     }}
-                                />
-                            )}
-                        </Box>
+                                    onClick={() => handleLightboxOpen(selectedImage)}
+                                >
+                                    <Box
+                                        component="img"
+                                        src={product.attachments[selectedImage]?.url}
+                                        alt={product.attachments[selectedImage]?.alt}
+                                        sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'contain',
+                                            transition: 'transform 0.3s',
+                                            '&:hover': { transform: 'scale(1.05)' },
+                                        }}
+                                    />
+                                    <IconButton
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 16,
+                                            right: 16,
+                                            bgcolor: 'background.paper',
+                                            '&:hover': { bgcolor: 'background.paper' },
+                                        }}
+                                    >
+                                        <ZoomIn />
+                                    </IconButton>
+                                    {product.attachments.length > 1 && (
+                                        <Chip
+                                            label={`${selectedImage + 1} / ${product.attachments.length}`}
+                                            size="small"
+                                            sx={{
+                                                position: 'absolute',
+                                                bottom: 16,
+                                                right: 16,
+                                                bgcolor: 'rgba(0,0,0,0.6)',
+                                                color: 'white',
+                                            }}
+                                        />
+                                    )}
+                                </Box>
+                            </Grid>
 
-                        {product.attachments.length > 1 && (
-                            <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
-                                <Grid container spacing={1}>
-                                    {product.attachments.map((image, index) => (
-                                        <Grid item xs={3} sm={2} md={1.5} key={image.id}>
+                            {product.attachments.length > 1 && (
+                                <Grid item xs={12} sm={3}>
+                                    <Stack spacing={1} sx={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                        {product.attachments.map((image, index) => (
                                             <Paper
+                                                key={image.id}
                                                 elevation={selectedImage === index ? 4 : 1}
                                                 sx={{
                                                     aspectRatio: '1',
@@ -316,6 +320,7 @@ const ProductDetail: React.FC = () => {
                                                     border: 2,
                                                     borderColor: selectedImage === index ? 'primary.main' : 'transparent',
                                                     transition: 'all 0.2s',
+                                                    borderRadius: 1.5,
                                                     '&:hover': { borderColor: 'primary.light' },
                                                 }}
                                                 onClick={() => handleImageSelect(index)}
@@ -331,11 +336,11 @@ const ProductDetail: React.FC = () => {
                                                     }}
                                                 />
                                             </Paper>
-                                        </Grid>
-                                    ))}
+                                        ))}
+                                    </Stack>
                                 </Grid>
-                            </Box>
-                        )}
+                            )}
+                        </Grid>
                     </Card>
 
                     <Card elevation={0}>
@@ -551,19 +556,6 @@ const ProductDetail: React.FC = () => {
                                         <Chip label="Photos" size="small" />
                                     </Badge>
                                 </Stack>
-                            </Stack>
-                        </CardContent>
-                    </Card>
-
-                    <Card elevation={0}>
-                        <CardContent>
-                            <Typography variant="h6" fontWeight={600} gutterBottom>
-                                Quick Actions
-                            </Typography>
-                            <Stack spacing={2} mt={2}>
-                                <Button fullWidth variant="contained" startIcon={<Edit />} onClick={handleEdit}>
-                                    Edit Product
-                                </Button>
                             </Stack>
                         </CardContent>
                     </Card>

@@ -33,7 +33,16 @@ export const responseDataPermissionUsingRole: any = {
                 module_order: "2",
                 is_navigation: 1,
             },
-      
+            {
+                uuid: "users123",
+                parent_id: "0",
+                name: "Users",
+                slug: "user123121",
+                module_url: "/admin/users",
+                icon: "Dashboard",
+                module_order: "2",
+                is_navigation: 1,
+            },
             {
                 uuid: "flood-relief-gallery123",
                 parent_id: "0",

@@ -8,6 +8,7 @@ import { NAVIGATE_ADMIN } from '../constant';
 import ProductForm from '../pages/admin/products/Components/CreateProduct';
 import ProductDetail from '../pages/admin/products/Components/ProductDetails';
 import ProductList from '../pages/admin/products/ProductList';
+import UserListPage from '../pages/admin/users';
 
 
 const DashboardPage = lazy(() => import('../pages/admin/dashboard'))
@@ -23,7 +24,10 @@ const AdminRoute = () => {
                     <Route path={NAVIGATE_ADMIN.PRODUCT} element={<ProductList />} />
                     <Route path={NAVIGATE_ADMIN.PRODUCT_CREATE} element={<ProductForm />} />
                     <Route path={NAVIGATE_ADMIN.PRODUCT_DETAILS} element={<ProductDetail />} />
-
+                    <Route
+                        path={NAVIGATE_ADMIN.USERS}
+                        element={<UserListPage />}
+                    />
                     {/* <Route path={NAVIGATE_ADMIN.STATASTICS} element={<Statastics />} /> */}
                 </Routes>
             </AdminLayout>
