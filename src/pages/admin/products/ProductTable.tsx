@@ -5,15 +5,15 @@ import {
     TableRow,
     TableCell,
     Button,
-    Avatar,
     Box,
     Typography,
     CircularProgress,
     Stack,
+    Tooltip,
 } from "@mui/material";
+import { Inventory2Outlined, ImageNotSupported } from "@mui/icons-material";
 import dayjs from "dayjs";
 import TableHeadList from "../../../components/common/table/TableHeadList";
-import CommonTableCell from "../../../components/common/table/CommonTableCell";
 import CategoryChip from "./chips/CategoryChip";
 import StatusChip from "./chips/StatusChip";
 import StockChip from "./chips/StockChip";
@@ -31,11 +31,8 @@ interface ProductTableProps {
     onDelete: (product: any) => void;
 }
 
-// Dummy Product Data with Image Links
-
-
 const ProductTable: React.FC<ProductTableProps> = ({
-    products ,
+    products,
     loading,
     onView,
     onEdit,
@@ -117,7 +114,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                 />
                             </TableCell>
 
-                            {/* Product ID */}
+                            {/* Product ID / Code */}
                             <TableCell
                                 sx={{
                                     padding: "12px 8px",
@@ -145,11 +142,12 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                     }}
                                     onClick={() => onView(product)}
                                 >
-                                    {product.id}
+                                    {/* Prefer product_code if available, else ID */}
+                                    {product.product_code || `#${product.id}`}
                                 </Button>
                             </TableCell>
 
-                            {/* Image + Name Combined */}
+                            {/* Image Placeholder + Name Combined */}
                             <TableCell
                                 sx={{
                                     padding: "8px 12px",
@@ -169,11 +167,12 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                     }}
                                     onClick={() => onView(product)}
                                 >
+                                    {/* Placeholder for Image since API doesn't have thumbnail */}
                                     <Box
                                         sx={{
                                             flexShrink: 0,
-                                            width: 60,
-                                            height: 60,
+                                            width: 50,
+                                            height: 50,
                                             display: "flex",
                                             alignItems: "center",
                                             justifyContent: "center",
@@ -181,39 +180,30 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                             borderRadius: 1,
                                             border: "1px solid",
                                             borderColor: "divider",
-                                            overflow: "hidden",
+                                            color: "text.secondary"
                                         }}
                                     >
-                                        <img
-                                            src={product.thumbnail}
-                                            alt={product.name}
-                                            style={{
-                                                width: "100%",
-                                                height: "100%",
-                                                objectFit: "cover",
-                                                display: "block",
-                                            }}
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).style.display = "none";
-                                            }}
-                                        />
+                                        <Inventory2Outlined fontSize="small" />
                                     </Box>
+
                                     <Box sx={{ minWidth: 0, flex: 1 }}>
-                                        <Typography
-                                            variant="body2"
-                                            fontWeight={600}
-                                            className="product-name"
-                                            sx={{
-                                                overflow: "hidden",
-                                                textOverflow: "ellipsis",
-                                                whiteSpace: "nowrap",
-                                                transition: "color 0.2s",
-                                                color: "text.primary",
-                                            }}
-                                            title={product.name}
-                                        >
-                                            {product.name}
-                                        </Typography>
+                                        <Tooltip title={product.product_name}>
+                                            <Typography
+                                                variant="body2"
+                                                fontWeight={600}
+                                                className="product-name"
+                                                sx={{
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    whiteSpace: "nowrap",
+                                                    transition: "color 0.2s",
+                                                    color: "text.primary",
+                                                    maxWidth: "200px"
+                                                }}
+                                            >
+                                                {product.product_name}
+                                            </Typography>
+                                        </Tooltip>
                                         <Typography
                                             variant="caption"
                                             color="textSecondary"
@@ -223,7 +213,6 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                                 textOverflow: "ellipsis",
                                                 whiteSpace: "nowrap",
                                             }}
-                                            title={product.brand}
                                         >
                                             {product.brand || "No Brand"}
                                         </Typography>
@@ -242,18 +231,6 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                 <CategoryChip category={product.category} />
                             </TableCell>
 
-                            {/* Price */}
-                            <TableCell
-                                sx={{
-                                    padding: "12px 8px",
-                                    width: "120px",
-                                    minWidth: "120px",
-                                }}
-                            >
-                                <Typography variant="body2" fontWeight={600} color="success.main">
-                                    ₹{product.price.toLocaleString()}
-                                </Typography>
-                            </TableCell>
 
                             {/* Stock */}
                             <TableCell
@@ -264,7 +241,8 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                     minWidth: "100px",
                                 }}
                             >
-                                <StockChip stock={product.stock} />
+                                {/* Using stock_qty from JSON */}
+                                <StockChip stock={product.stock_qty || 0}  />
                             </TableCell>
 
                             {/* Status */}
@@ -276,7 +254,8 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                     minWidth: "110px",
                                 }}
                             >
-                                <StatusChip status={product.status} />
+                                {/* Converting boolean is_active to string for Chip */}
+                                <StatusChip status={product.is_active ? "active" : "inactive"} />
                             </TableCell>
 
                             {/* QR Status */}
@@ -288,7 +267,8 @@ const ProductTable: React.FC<ProductTableProps> = ({
                                     minWidth: "100px",
                                 }}
                             >
-                                <QRStatusChip generated={product.qr_generated} />
+                                {/* Checking if path exists to determine status */}
+                                <QRStatusChip generated={!!product.qr_code_path} />
                             </TableCell>
 
                             {/* Created Date */}

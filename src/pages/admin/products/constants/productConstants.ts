@@ -28,12 +28,7 @@ export const productHeadCells: any = [
         width: "140px",
         align: "left",
     },
-    {
-        id: "price",
-        label: "Price",
-        width: "120px",
-        align: "left",
-    },
+
     {
         id: "stock",
         label: "Stock",
