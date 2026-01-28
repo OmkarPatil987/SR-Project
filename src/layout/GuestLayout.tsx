@@ -1,6 +1,5 @@
 import React from 'react'
 import { Box } from '@mui/material';
-import Footer from '../pages/guest/home/components/FooterComponent';
 import RegisterTopbar from '../components/admin/topbar/RegisterTopbar';
 const GuestLayout = ({ children }: { children: React.ReactNode }) => {
 
@@ -14,7 +13,7 @@ const GuestLayout = ({ children }: { children: React.ReactNode }) => {
                     </Box>
                 </Box>
             </Box>
-            <Footer />
+            
         </Box>
     )
 }

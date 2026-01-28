@@ -1,330 +1,76 @@
-import {
-    AppBar,
-    Box,
-    Button,
-    Container,
-    Toolbar,
-    Typography,
-    IconButton,
-    Avatar,
-    Menu,
-    MenuItem,
-    Badge,
-    Tooltip,
-    Chip,
-} from '@mui/material';
-import {
-    AddCircleOutline,
-    NotificationsOutlined,
-    SettingsOutlined,
-    PersonOutline,
-    DashboardOutlined,
-    Inventory2Outlined,
-    CategoryOutlined,
-    BarChartOutlined,
-    HelpOutlineOutlined,
-    LogoutOutlined,
-} from '@mui/icons-material';
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import useResponsive from '../../../hooks/useResponsive';
+import React, { useState } from 'react';
+import { Menu, X, QrCode } from 'lucide-react';
 
-export default function ProductManagementTopbar() {
-    const { isMobile } = useResponsive();
-    const navigate = useNavigate();
-    const location = useLocation();
+const Navbar: React.FC = () => {
+    const [isOpen, setIsOpen] = useState(false);
 
-    const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-    const [anchorElNotifications, setAnchorElNotifications] = useState<null | HTMLElement>(null);
-
-    const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorElUser(event.currentTarget);
-    };
-
-    const handleCloseUserMenu = () => {
-        setAnchorElUser(null);
-    };
-
-    const handleOpenNotifications = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorElNotifications(event.currentTarget);
-    };
-
-    const handleCloseNotifications = () => {
-        setAnchorElNotifications(null);
-    };
-
-    const handleLogout = () => {
-        // Add logout logic
-        handleCloseUserMenu();
-    };
-
-    const navigationItems = [
-        { label: 'Dashboard', icon: <DashboardOutlined />, path: '/dashboard' },
-        { label: 'Products', icon: <Inventory2Outlined />, path: '/products' },
-        { label: 'Categories', icon: <CategoryOutlined />, path: '/categories' },
-        { label: 'Analytics', icon: <BarChartOutlined />, path: '/analytics' },
+    const navLinks = [
+        { name: 'Compliance', href: '#compliance' },
+        { name: 'Static QR', href: '#static-qr' },
+        { name: 'Dynamic QR', href: '#dynamic-qr' },
+        { name: 'How it Works', href: '#how-it-works' },
+        { name: 'Benefits', href: '#benefits' },
     ];
-
-    const notifications = [
-        { id: 1, message: '5 new products pending approval', time: '2m ago', unread: true },
-        { id: 2, message: 'Stock alert: iPhone 15 Pro running low', time: '15m ago', unread: true },
-        { id: 3, message: 'Product "Laptop XYZ" updated successfully', time: '1h ago', unread: false },
-    ];
-
-    const unreadCount = notifications.filter(n => n.unread).length;
 
     return (
-        <AppBar
-            position="sticky"
-            elevation={2}
-            sx={{
-                backgroundColor: 'common.white',
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-            }}
-        >
-            <Toolbar disableGutters>
-                <Container
-                    maxWidth="xl"
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        minHeight: { xs: 56, sm: 64 },
-                        px: { xs: 2, md: 3 },
-                    }}
-                >
-                    {/* Left Section - Logo & Navigation */}
-                    <Box display="flex" alignItems="center" gap={{ xs: 1, md: 3 }}>
-                        {/* Logo */}
-                        <Box
-                            display="flex"
-                            alignItems="center"
-                            gap={1}
-                            sx={{ cursor: 'pointer' }}
-                            onClick={() => navigate('/dashboard')}
-                        >
-                            <Box
-                                sx={{
-                                    width: { xs: 36, md: 48 },
-                                    height: { xs: 36, md: 48 },
-                                    borderRadius: 2,
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}
+        <nav className="fixed w-full z-50 bg-white shadow-md border-b border-stone-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-20">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+                            <QrCode className="h-8 w-8 text-brand-green" />
+                            <span className="font-bold text-2xl text-stone-900 tracking-tight">apna<span className="text-brand-green">QR</span></span>
+                        </div>
+                    </div>
+
+                    <div className="hidden md:flex items-center space-x-8">
+                        {navLinks.map((link) => (
+                            <a
+                                key={link.name}
+                                href={link.href}
+                                className="text-stone-600 hover:text-brand-green font-medium transition-colors duration-200"
                             >
-                                <Inventory2Outlined sx={{ color: 'white', fontSize: { xs: 20, md: 28 } }} />
-                            </Box>
-                            {!isMobile && (
-                                <Box>
-                                    <Typography
-                                        variant="h6"
-                                        fontWeight={700}
-                                        color="text.primary"
-                                        sx={{ fontSize: { xs: '1rem', md: '1.25rem' }, lineHeight: 1.2 }}
-                                    >
-                                        ProductHub
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                                        Product Management System
-                                    </Typography>
-                                </Box>
-                            )}
-                        </Box>
+                                {link.name}
+                            </a>
+                        ))}
+                        <button className="bg-brand-green hover:bg-emerald-900 text-white px-5 py-2.5 rounded-md font-semibold transition-colors shadow-sm">
+                            Get Started
+                        </button>
+                    </div>
 
-                        {/* Navigation Links - Desktop Only */}
-                        {!isMobile && (
-                            <Box display="flex" gap={1} ml={2}>
-                                {navigationItems.map((item) => (
-                                    <Button
-                                        key={item.path}
-                                        startIcon={item.icon}
-                                        onClick={() => navigate(item.path)}
-                                        sx={{
-                                            textTransform: 'none',
-                                            color: location.pathname === item.path ? 'primary.main' : 'text.secondary',
-                                            fontWeight: location.pathname === item.path ? 600 : 500,
-                                            backgroundColor: location.pathname === item.path ? 'primary.lighter' : 'transparent',
-                                            '&:hover': {
-                                                backgroundColor: 'action.hover',
-                                            },
-                                            px: 2,
-                                            borderRadius: 2,
-                                        }}
-                                    >
-                                        {item.label}
-                                    </Button>
-                                ))}
-                            </Box>
-                        )}
-                    </Box>
-
-                    {/* Right Section - Actions & Profile */}
-                    <Box display="flex" alignItems="center" gap={{ xs: 0.5, md: 1.5 }}>
-                        {/* Add Product Button */}
-                        <Button
-                            variant="contained"
-                            startIcon={<AddCircleOutline />}
-                            onClick={() => navigate('/products/create')}
-                            sx={{
-                                textTransform: 'none',
-                                fontWeight: 600,
-                                borderRadius: 2,
-                                px: { xs: 1.5, md: 2.5 },
-                                display: { xs: 'none', sm: 'flex' },
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                '&:hover': {
-                                    background: 'linear-gradient(135deg, #5568d3 0%, #66408a 100%)',
-                                },
-                            }}
+                    <div className="md:hidden flex items-center">
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="text-stone-600 hover:text-stone-900 focus:outline-none"
                         >
-                            Add Product
-                        </Button>
+                            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-                        {/* Mobile Add Button */}
-                        {isMobile && (
-                            <IconButton
-                                color="primary"
-                                onClick={() => navigate('/products/create')}
-                                sx={{
-                                    backgroundColor: 'primary.main',
-                                    color: 'white',
-                                    '&:hover': { backgroundColor: 'primary.dark' },
-                                }}
+            {/* Mobile Menu */}
+            {isOpen && (
+                <div className="md:hidden bg-white border-t border-stone-100">
+                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                        {navLinks.map((link) => (
+                            <a
+                                key={link.name}
+                                href={link.href}
+                                onClick={() => setIsOpen(false)}
+                                className="block px-3 py-2 rounded-md text-base font-medium text-stone-700 hover:text-brand-green hover:bg-stone-50"
                             >
-                                <AddCircleOutline fontSize="small" />
-                            </IconButton>
-                        )}
-
-                        {/* Notifications */}
-                        <Tooltip title="Notifications">
-                            <IconButton onClick={handleOpenNotifications} size={isMobile ? 'small' : 'medium'}>
-                                <Badge badgeContent={unreadCount} color="error">
-                                    <NotificationsOutlined />
-                                </Badge>
-                            </IconButton>
-                        </Tooltip>
-
-                        <Menu
-                            anchorEl={anchorElNotifications}
-                            open={Boolean(anchorElNotifications)}
-                            onClose={handleCloseNotifications}
-                            PaperProps={{
-                                sx: { width: 320, maxHeight: 400, mt: 1.5 },
-                            }}
-                        >
-                            <Box px={2} py={1.5} borderBottom={1} borderColor="divider">
-                                <Typography variant="h6" fontWeight={600}>
-                                    Notifications
-                                </Typography>
-                            </Box>
-                            {notifications.map((notification) => (
-                                <MenuItem
-                                    key={notification.id}
-                                    onClick={handleCloseNotifications}
-                                    sx={{
-                                        py: 1.5,
-                                        px: 2,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'flex-start',
-                                        backgroundColor: notification.unread ? 'action.hover' : 'transparent',
-                                    }}
-                                >
-                                    <Typography variant="body2" fontWeight={notification.unread ? 600 : 400}>
-                                        {notification.message}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {notification.time}
-                                    </Typography>
-                                </MenuItem>
-                            ))}
-                            <Box px={2} py={1.5} borderTop={1} borderColor="divider">
-                                <Button fullWidth size="small" sx={{ textTransform: 'none' }}>
-                                    View All Notifications
-                                </Button>
-                            </Box>
-                        </Menu>
-
-                        {/* Settings - Desktop Only */}
-                        {!isMobile && (
-                            <Tooltip title="Settings">
-                                <IconButton onClick={() => navigate('/settings')}>
-                                    <SettingsOutlined />
-                                </IconButton>
-                            </Tooltip>
-                        )}
-
-                        {/* User Profile */}
-                        <Tooltip title="Account">
-                            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, ml: { xs: 0.5, md: 1 } }}>
-                                <Avatar
-                                    alt="User Name"
-                                    src="/images/avatar.jpg"
-                                    sx={{
-                                        width: { xs: 32, md: 40 },
-                                        height: { xs: 32, md: 40 },
-                                        border: '2px solid',
-                                        borderColor: 'primary.main',
-                                    }}
-                                >
-                                    UN
-                                </Avatar>
-                            </IconButton>
-                        </Tooltip>
-
-                        <Menu
-                            anchorEl={anchorElUser}
-                            open={Boolean(anchorElUser)}
-                            onClose={handleCloseUserMenu}
-                            PaperProps={{
-                                sx: { width: 240, mt: 1.5 },
-                            }}
-                        >
-                            <Box px={2} py={2} borderBottom={1} borderColor="divider">
-                                <Typography variant="subtitle1" fontWeight={600}>
-                                    John Doe
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    john.doe@productshub.com
-                                </Typography>
-                                <Chip
-                                    label="Admin"
-                                    size="small"
-                                    color="primary"
-                                    sx={{ mt: 1, height: 20, fontSize: '0.7rem' }}
-                                />
-                            </Box>
-
-                            <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/profile'); }}>
-                                <PersonOutline sx={{ mr: 1.5 }} fontSize="small" />
-                                Profile
-                            </MenuItem>
-
-                            {isMobile && (
-                                <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/settings'); }}>
-                                    <SettingsOutlined sx={{ mr: 1.5 }} fontSize="small" />
-                                    Settings
-                                </MenuItem>
-                            )}
-
-                            <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/help'); }}>
-                                <HelpOutlineOutlined sx={{ mr: 1.5 }} fontSize="small" />
-                                Help & Support
-                            </MenuItem>
-
-                            <Box borderTop={1} borderColor="divider" mt={1}>
-                                <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
-                                    <LogoutOutlined sx={{ mr: 1.5 }} fontSize="small" />
-                                    Logout
-                                </MenuItem>
-                            </Box>
-                        </Menu>
-                    </Box>
-                </Container>
-            </Toolbar>
-        </AppBar>
+                                {link.name}
+                            </a>
+                        ))}
+                        <button className="w-full mt-4 bg-brand-green text-white px-5 py-3 rounded-md font-semibold">
+                            Get Started
+                        </button>
+                    </div>
+                </div>
+            )}
+        </nav>
     );
-}
+};
+
+export default Navbar;
