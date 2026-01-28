@@ -1,24 +1,25 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import {
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  InputAdornment,
-  Divider,
-  IconButton,
-  Avatar,
-  useTheme,
-  FormLabel,
+    Container,
+    Box,
+    Typography,
+    TextField,
+    Button,
+    InputAdornment,
+    Divider,
+    IconButton,
+    Avatar,
+    useTheme,
+    FormLabel,
+    Fade,
 } from "@mui/material";
 import {
-  LockPersonOutlined,
-  PasswordOutlined,
-  PersonOutlineOutlined,
-  RemoveRedEyeOutlined,
-  VisibilityOffOutlined,
+    LockPersonOutlined,
+    PasswordOutlined,
+    PersonOutlineOutlined,
+    RemoveRedEyeOutlined,
+    VisibilityOffOutlined,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
@@ -27,265 +28,248 @@ import { loginService } from "../../../utils/services/auth.service";
 import { encryptText } from "../../../utils/utils";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-  const theme = useTheme();
-  const dispatch = useDispatch();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+    const navigate = useNavigate();
+    const theme = useTheme();
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState<boolean>(false);
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
 
-  const handleSubmit = async (event: any) => {
-    event.preventDefault();
-    setErrorMessage("");
-    setLoading(true);
+    // Professional Green Palette
+    const agriColors = {
+        primary: "#064e3b", // Deep Forest Green
+        accent: "#10b981",  // Emerald Green
+        bgGradient: "linear-gradient(135deg, #064e3b 0%, #065f46 50%, #059669 100%)",
+    };
 
-    if (!username || !password) {
-      setErrorMessage("Please enter email and password.");
-      setLoading(false);
-      return;
-    }
+    const handleSubmit = async (event: any) => {
+        event.preventDefault();
+        setErrorMessage("");
+        setLoading(true);
 
-    const payload = { username, password };
-    const { code, data, message } = await loginService(payload);
+        if (!username || !password) {
+            setErrorMessage("Please enter email and password.");
+            setLoading(false);
+            return;
+        }
 
-    if (code === 200 && data) {
-      const rec = {
-        userDetails: data.User,
-        token: data.Token,
-        session_expires: data.ExpiresAt,
-      };
-      dispatch(setAuthUser(rec));
-      const encrypted = JSON.stringify(rec);
-      localStorage.setItem("user_auth_session", encryptText(encrypted));
-      dispatch(
-        showSnackbar({
-          type: "success",
-          message: `✅ Login Successful \n Welcome, ${rec?.userDetails?.name}`,
-        })
-      );
-      navigate("/admin/dashboard");
-    } else {
-      setErrorMessage("Invalid username or password.");
-      dispatch(
-        showSnackbar({
-          type: "error",
-          message: message || "Something went wrong, please try again",
-        })
-      );
-    }
-    setLoading(false);
-  };
+        const payload = { username, password };
+        const { code, data, message } = await loginService(payload);
 
-  return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      }}
-    >
-      <Container component="main" maxWidth="xs">
+        if (code === 200 && data) {
+            const rec = {
+                userDetails: data.User,
+                token: data.Token,
+                session_expires: data.ExpiresAt,
+            };
+            dispatch(setAuthUser(rec));
+            const encrypted = JSON.stringify(rec);
+            localStorage.setItem("user_auth_session", encryptText(encrypted));
+            dispatch(
+                showSnackbar({
+                    type: "success",
+                    message: `✅ Login Successful \n Welcome, ${rec?.userDetails?.name}`,
+                })
+            );
+            navigate("/admin/dashboard");
+        } else {
+            setErrorMessage("Invalid username or password.");
+            dispatch(
+                showSnackbar({
+                    type: "error",
+                    message: message || "Something went wrong, please try again",
+                })
+            );
+        }
+        setLoading(false);
+    };
+
+    return (
         <Box
-          sx={{
-            bgcolor: "#fff",
-            p: 4,
-            borderRadius: 3,
-            boxShadow: "0px 10px 40px rgba(0,0,0,0.2)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          {/* Logo/Icon */}
-          <Avatar
             sx={{
-              width: 64,
-              height: 64,
-              backgroundColor: theme.palette.primary.main,
-              mb: 2,
-            }}
-          >
-            <LockPersonOutlined fontSize="large" />
-          </Avatar>
-
-          {/* Title */}
-          <Typography component="h1" variant="h5" fontWeight={700} gutterBottom>
-            Product Management App
-          </Typography>
-
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: 3, textAlign: "center" }}
-          >
-            Sign in to manage your products and QR codes
-          </Typography>
-
-          {/* Login Form */}
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            sx={{ width: "100%" }}
-          >
-            {/* Username Field */}
-            <TextField
-              variant="outlined"
-              size="small"
-              margin="normal"
-              required
-              fullWidth
-              placeholder="Enter username or email"
-              label="Username / Email"
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                setErrorMessage("");
-              }}
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonOutlineOutlined fontSize="small" color="primary" />
-                    <Divider orientation="vertical" sx={{ height: 20, ml: 1 }} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                mb: 2,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  "&.Mui-focused": {
-                    boxShadow: "0 0 8px rgba(102, 126, 234, 0.3)",
-                  },
-                },
-              }}
-            />
-
-            {/* Password Field */}
-            <TextField
-              variant="outlined"
-              size="small"
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              id="password"
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrorMessage("");
-              }}
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PasswordOutlined fontSize="small" color="primary" />
-                    <Divider orientation="vertical" sx={{ height: 20, ml: 1 }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      color="primary"
-                      aria-label="toggle password visibility"
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? (
-                        <VisibilityOffOutlined />
-                      ) : (
-                        <RemoveRedEyeOutlined />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
-                  "&.Mui-focused": {
-                    boxShadow: "0 0 8px rgba(102, 126, 234, 0.3)",
-                  },
-                },
-              }}
-            />
-
-            {/* Error Message */}
-            {errorMessage && (
-              <Box display="flex" justifyContent="center" mt={1}>
-                <FormLabel error>{errorMessage}</FormLabel>
-              </Box>
-            )}
-
-            {/* Login Button */}
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              color="primary"
-              disabled={loading}
-              sx={{
-                mt: 3,
-                py: 1.5,
-                fontWeight: 600,
-                borderRadius: 2,
-                fontSize: "1rem",
-                textTransform: "none",
-                boxShadow: "0px 4px 12px rgba(102, 126, 234, 0.4)",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: "primary.dark",
-                  boxShadow: "0px 6px 18px rgba(102, 126, 234, 0.6)",
-                  transform: "translateY(-2px)",
-                },
-              }}
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
-
-            {/* Footer Links */}
-            <Box
-              sx={{
-                mt: 3,
+                minHeight: "100vh",
                 display: "flex",
+                alignItems: "center",
                 justifyContent: "center",
-                gap: 2,
-              }}
-            >
-              <Button
-                variant="text"
-                size="small"
-                onClick={() => navigate("/forgot-password")}
-                sx={{ textTransform: "none" }}
-              >
-                Forgot Password?
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Copyright */}
-        <Typography
-          variant="body2"
-          color="white"
-          align="center"
-          sx={{ mt: 3 }}
+                background: agriColors.bgGradient,
+                px: 2,
+            }}
         >
-          © {new Date().getFullYear()} Product Management System. All rights
-          reserved.
-        </Typography>
-      </Container>
-    </Box>
-  );
+            <Fade in={true} timeout={800}>
+                <Container component="main" maxWidth="xs">
+                    <Box
+                        sx={{
+                            bgcolor: "rgba(255, 255, 255, 0.98)",
+                            p: { xs: 3, sm: 5 },
+                            borderRadius: 4,
+                            boxShadow: "0px 20px 60px rgba(0,0,0,0.3)",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            border: "1px solid rgba(255, 255, 255, 0.3)",
+                        }}
+                    >
+                        {/* Branding */}
+                        <Avatar
+                            sx={{
+                                width: 70,
+                                height: 70,
+                                backgroundColor: agriColors.primary,
+                                mb: 2,
+                                boxShadow: "0px 8px 16px rgba(6, 78, 59, 0.2)",
+                            }}
+                        >
+                            <LockPersonOutlined sx={{ fontSize: 35, color: "#fff" }} />
+                        </Avatar>
+
+                        <Typography
+                            component="h1"
+                            variant="h4"
+                            fontWeight={800}
+                            sx={{ color: agriColors.primary, letterSpacing: -0.5 }}
+                        >
+                            apna<span style={{ color: agriColors.accent }}>QR</span>
+                        </Typography>
+
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mb: 4, textAlign: "center", fontWeight: 500 }}
+                        >
+                            Government-Compliant Agri-Platform
+                        </Typography>
+
+                        {/* Login Form */}
+                        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ width: "100%" }}>
+                            <TextField
+                                variant="outlined"
+                                margin="normal"
+                                required
+                                fullWidth
+                                label="Username / Email"
+                                value={username}
+                                onChange={(e) => {
+                                    setUsername(e.target.value);
+                                    setErrorMessage("");
+                                }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <PersonOutlineOutlined sx={{ color: agriColors.primary }} />
+                                            <Divider orientation="vertical" sx={{ height: 20, ml: 1 }} />
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: 3,
+                                        backgroundColor: "#f9fafb",
+                                        "&:hover fieldset": { borderColor: agriColors.accent },
+                                    },
+                                }}
+                            />
+
+                            <TextField
+                                variant="outlined"
+                                margin="normal"
+                                required
+                                fullWidth
+                                label="Password"
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    setErrorMessage("");
+                                }}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <PasswordOutlined sx={{ color: agriColors.primary }} />
+                                            <Divider orientation="vertical" sx={{ height: 20, ml: 1 }} />
+                                        </InputAdornment>
+                                    ),
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                                {showPassword ? <VisibilityOffOutlined /> : <RemoveRedEyeOutlined />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                                sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                        borderRadius: 3,
+                                        backgroundColor: "#f9fafb",
+                                        "&:hover fieldset": { borderColor: agriColors.accent },
+                                    },
+                                }}
+                            />
+
+                            {errorMessage && (
+                                <Box sx={{ mt: 1, textAlign: "center" }}>
+                                    <Typography variant="caption" color="error" fontWeight={600}>
+                                        {errorMessage}
+                                    </Typography>
+                                </Box>
+                            )}
+
+                            <Button
+                                type="submit"
+                                fullWidth
+                                variant="contained"
+                                disabled={loading}
+                                sx={{
+                                    mt: 4,
+                                    py: 1.8,
+                                    fontWeight: 700,
+                                    borderRadius: 3,
+                                    fontSize: "1rem",
+                                    textTransform: "none",
+                                    backgroundColor: agriColors.primary,
+                                    boxShadow: `0px 8px 20px rgba(6, 78, 59, 0.3)`,
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        backgroundColor: "#065f46",
+                                        transform: "translateY(-2px)",
+                                        boxShadow: `0px 12px 24px rgba(6, 78, 59, 0.4)`,
+                                    },
+                                }}
+                            >
+                                {loading ? "Verifying Credentials..." : "Secure Login"}
+                            </Button>
+
+                            <Box sx={{ mt: 3, textAlign: "center" }}>
+                                <Button
+                                    variant="text"
+                                    size="small"
+                                    onClick={() => navigate("/forgot-password")}
+                                    sx={{
+                                        textTransform: "none",
+                                        color: agriColors.primary,
+                                        fontWeight: 600,
+                                        "&:hover": { backgroundColor: "transparent", color: agriColors.accent }
+                                    }}
+                                >
+                                    Forgot your password?
+                                </Button>
+                            </Box>
+                        </Box>
+                    </Box>
+
+                    <Typography
+                        variant="body2"
+                        color="rgba(255,255,255,0.7)"
+                        align="center"
+                        sx={{ mt: 4, fontWeight: 500 }}
+                    >
+                        © {new Date().getFullYear()} apnaQR Agri-Systems. <br /> Secure Portal
+                    </Typography>
+                </Container>
+            </Fade>
+        </Box>
+    );
 };
 
 export default LoginPage;
