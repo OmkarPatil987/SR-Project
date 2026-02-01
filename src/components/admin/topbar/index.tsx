@@ -64,7 +64,7 @@ export default function AdminTopBar() {
                 backdropFilter: 'blur(12px)',
                 borderBottom: `1px solid ${theme.palette.divider}`,
                 color: 'text.primary',
-                zIndex: theme.zIndex.drawer + 1
+                // zIndex: theme.zIndex.drawer + 1
             }}
         >
             <Toolbar sx={{ height: 64, justifyContent: 'space-between', px: { xs: 2, md: 4 } }}>

@@ -105,12 +105,12 @@ const ProductList: React.FC = () => {
                     <Typography variant="body2" sx={{ color: "#509574" }}>Manage and track QR compliance for your agricultural inventory.</Typography>
                 </Box>
                 <Stack direction="row" spacing={2}>
-                    <Button
+                    {/* <Button
                         startIcon={<FileUploadOutlined />}
                         sx={{ bgcolor: '#e8f3ed', color: '#19b369', borderRadius: '0.75rem', px: 3, height: 44, fontWeight: 700, '&:hover': { bgcolor: '#d1e6dc' } }}
                     >
                         Import CSV
-                    </Button>
+                    </Button> */}
                     <Button
                         onClick={handleCreateProduct}
                         variant="contained"

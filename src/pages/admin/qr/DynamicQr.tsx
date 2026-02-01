@@ -5,16 +5,30 @@ import {
     Box, Paper, Button, TextField, IconButton, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, Tooltip,
     Chip, Stack, TablePagination, Skeleton, InputAdornment, Typography, Avatar,
-    Grid, Switch, CircularProgress
+    Switch, CircularProgress
 } from "@mui/material";
 import {
-    Add, QrCode2, Edit, Search, FileDownload,
-    TrendingUp, CheckCircle, Warning, Sensors, Visibility // Added Visibility icon
+    Add, Edit, Search, FileDownload, Visibility
 } from "@mui/icons-material";
+import { jsPDF } from "jspdf"; // Import jsPDF
 import { RootState } from "../../../redux/store";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import { resetRefresh } from "../../../redux/reducer/refreshSlice";
 import { FetchQRListService } from "../../../utils/services/product.service";
+
+const loadImageAsBase64 = async (url: string): Promise<string> => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch image");
+
+    const blob = await response.blob();
+
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+};
 
 const DynamicQRList: React.FC = () => {
     const navigate = useNavigate();
@@ -53,29 +67,42 @@ const DynamicQRList: React.FC = () => {
         getQRList();
     }, [getQRList]);
 
-    const handleDownload = async (path: string, fileName: string, uuid: string) => {
+    /**
+     * Modified handleDownload
+     * Uses jsPDF to create a formatted document from the image URL
+     */
+    const handleDownload = async (row: any) => {
+        const path = row.qr_path;
         if (!path) return;
-        setDownloadingId(uuid);
+
+        setDownloadingId(row.detail_uuid);
 
         try {
-            const response = await fetch(path);
-            if (!response.ok) throw new Error();
+            const doc = new jsPDF({
+                orientation: "portrait",
+                unit: "mm",
+                format: [80, 100],
+            });
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            // 🔥 Load QR as base64
+            const base64Image = await loadImageAsBase64(path);
 
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${fileName.replace(/\s+/g, '_')}_QR.png`;
-            document.body.appendChild(link);
-            link.click();
+            // Add QR
+            doc.addImage(base64Image, "PNG", 15, 10, 50, 50);
 
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            dispatch(showSnackbar({ type: "success", message: "Download successful" }));
-        } catch (error) {
-            window.open(path, '_blank');
-            dispatch(showSnackbar({ type: "warning", message: "Direct download blocked. Opening in new tab." }));
+            // Text
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text(row.product_name || "Product", 40, 70, { align: "center" });
+
+
+            const safeName = (row.product_name || "QR").replace(/\s+/g, "_");
+            doc.save(`${safeName}_Badge.pdf`);
+
+            dispatch(showSnackbar({ type: "success", message: "PDF Downloaded" }));
+        } catch (err) {
+            console.error(err);
+            dispatch(showSnackbar({ type: "error", message: "Failed to generate PDF" }));
         } finally {
             setDownloadingId(null);
         }
@@ -83,7 +110,6 @@ const DynamicQRList: React.FC = () => {
 
     return (
         <Box sx={{ mx: "auto", px: 4, py: 4 }}>
-            {/* Header Section */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
                 <Box>
                     <Typography variant="h4" sx={{ fontWeight: 900, color: "#0e1b12", mb: 0.5 }}>Dynamic QR Inventory</Typography>
@@ -99,7 +125,6 @@ const DynamicQRList: React.FC = () => {
                 </Button>
             </Box>
 
-            {/* Table Container */}
             <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #e0e0e0', overflow: 'hidden' }}>
                 <Box sx={{ p: 2, borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Stack direction="row" spacing={1}>
@@ -160,7 +185,6 @@ const DynamicQRList: React.FC = () => {
                                         </TableCell>
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                                {/* View Icon Button */}
                                                 <Tooltip title="View Public Page">
                                                     <IconButton
                                                         size="small"
@@ -171,10 +195,10 @@ const DynamicQRList: React.FC = () => {
                                                     </IconButton>
                                                 </Tooltip>
 
-                                                <Tooltip title="Download PNG">
+                                                <Tooltip title="Download PDF Badge">
                                                     <IconButton
                                                         size="small"
-                                                        onClick={() => handleDownload(row.qr_path, row.product_name, row.detail_uuid)}
+                                                        onClick={() => handleDownload(row)}
                                                         disabled={downloadingId === row.detail_uuid}
                                                     >
                                                         {downloadingId === row.detail_uuid ? <CircularProgress size={18} /> : <FileDownload fontSize="small" />}
