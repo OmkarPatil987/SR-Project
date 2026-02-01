@@ -1,7 +1,10 @@
 import React from 'react';
 import { UserPlus, UploadCloud, QrCode, ScanFace, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const HowItWorks: React.FC = () => {
+
+    const navigate = useNavigate();
     const steps = [
         {
             icon: <UserPlus className="h-8 w-8" />,
@@ -59,13 +62,6 @@ const HowItWorks: React.FC = () => {
                             </div>
                         ))}
                     </div>
-                </div>
-
-                {/* CTA in How It Works */}
-                <div className="mt-16 text-center">
-                    <button className="inline-flex items-center text-brand-green font-bold hover:text-emerald-900 transition-colors">
-                        Start Registration Process <ChevronRight className="ml-1 h-5 w-5" />
-                    </button>
                 </div>
             </div>
         </section>

@@ -6,9 +6,7 @@ const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
 
-    // Change background on scroll for better visibility over hero content
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
@@ -23,7 +21,10 @@ const Navbar: React.FC = () => {
     ];
 
     return (
-        <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md py-3 shadow-lg' : 'bg-transparent py-5'
+        /* FIXED: Changed to solid emerald-700 background. 
+           Added transition for padding on scroll. 
+        */
+        <nav className={`sticky top-0 w-full z-50 transition-all duration-300 bg-emerald-700 ${scrolled ? 'py-1 shadow-2xl' : 'py-3'
             }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
@@ -32,11 +33,12 @@ const Navbar: React.FC = () => {
                         className="flex items-center gap-2 cursor-pointer group"
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                     >
-                        <div className="p-2 bg-brand-green/10 rounded-lg group-hover:bg-brand-green/20 transition-colors">
-                            <QrCode className="h-7 w-7 text-brand-green" />
+                        {/* Lightened the logo background for contrast on green */}
+                        <div className="p-2 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors">
+                            <QrCode className="h-7 w-7 text-white" />
                         </div>
-                        <span className="font-bold text-2xl text-stone-900 tracking-tight">
-                            apna<span className="text-brand-green">QR</span>
+                        <span className="font-bold text-2xl text-white tracking-tight">
+                            apna<span className="text-emerald-200">QR</span>
                         </span>
                     </div>
 
@@ -46,31 +48,30 @@ const Navbar: React.FC = () => {
                             <a
                                 key={link.name}
                                 href={link.href}
-                                className="px-4 py-2 text-stone-600 hover:text-brand-green font-medium rounded-full hover:bg-stone-100 transition-all duration-200"
+                                /* Changed text to white with an emerald hover effect */
+                                className="px-4 py-2 text-emerald-50 hover:text-white font-medium rounded-full hover:bg-white/10 transition-all duration-200"
                             >
                                 {link.name}
                             </a>
                         ))}
 
-                        <div className="h-6 w-[1px] bg-stone-200 mx-4" /> {/* Visual Separator */}
+                        <div className="h-6 w-[1px] bg-emerald-600/50 mx-4" />
 
                         <button
                             onClick={() => navigate('/auth/login')}
-                            className="flex items-center gap-2 px-5 py-2 text-stone-700 hover:text-brand-green font-semibold transition-colors"
+                            /* Changed login button to a white solid button for visibility */
+                            className="flex items-center gap-2 px-5 py-2 bg-white text-emerald-800 rounded-full font-bold hover:bg-emerald-50 transition-colors"
                         >
                             <LogIn className="h-4 w-4" />
                             Login
                         </button>
-
-                    
                     </div>
 
                     {/* Mobile Toggle */}
                     <div className="md:hidden">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="p-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
-                            aria-label="Toggle Menu"
+                            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
                         >
                             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </button>
@@ -78,8 +79,8 @@ const Navbar: React.FC = () => {
                 </div>
             </div>
 
-            {/* Mobile Menu with Slide Animation */}
-            <div className={`md:hidden absolute w-full bg-white border-b border-stone-100 transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+            {/* Mobile Menu */}
+            <div className={`md:hidden absolute w-full bg-emerald-800 border-t border-emerald-600 transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
                 }`}>
                 <div className="px-4 pt-2 pb-6 space-y-2 shadow-xl">
                     {navLinks.map((link) => (
@@ -87,20 +88,11 @@ const Navbar: React.FC = () => {
                             key={link.name}
                             href={link.href}
                             onClick={() => setIsOpen(false)}
-                            className="block px-4 py-3 rounded-xl text-base font-medium text-stone-700 hover:text-brand-green hover:bg-stone-50"
+                            className="block px-4 py-3 rounded-xl text-base font-medium text-emerald-50 hover:text-white hover:bg-white/10"
                         >
                             {link.name}
                         </a>
                     ))}
-                    <div className="pt-4 grid grid-cols-2 gap-3">
-                        <button
-                            onClick={() => navigate('/auth/login')}
-                            className="py-3 rounded-xl font-semibold text-stone-700 bg-stone-100 active:bg-stone-200"
-                        >
-                            Login
-                        </button>
-                    
-                    </div>
                 </div>
             </div>
         </nav>

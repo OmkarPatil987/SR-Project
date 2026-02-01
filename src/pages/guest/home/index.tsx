@@ -8,15 +8,19 @@ import Benefits from './Benefits'
 import AboutSection from './AboutSection'
 import Footer from './Footer'
 import QRGenerator from './QRGenerator'
+import { HeroSlider } from './HeroSlider'
+import QRComparison from './QRComparision'
 
 const HomePage = () => {
   return (
     <div>
-          <Hero />
+          <HeroSlider/>
+          {/* <Hero /> */}
           {/* <QRGenerator/> */}
           <ComplianceSection />
           <StaticQr />
           <DynamicQr />
+          <QRComparison/>
           <HowItWorks />
           <Benefits />
           <AboutSection />
