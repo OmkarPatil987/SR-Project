@@ -98,13 +98,7 @@ const ProductList: React.FC = () => {
     };
 
     return (
-        <Box className="w-full px-10 py-8 font-display bg-[#f6f8f7] min-h-screen">
-            <Stack direction="row" spacing={1} mb={2}>
-                <Typography variant="body2" sx={{ color: "#509574", cursor: 'pointer' }}>Dashboard</Typography>
-                <Typography variant="body2" sx={{ color: "#509574" }}>/</Typography>
-                <Typography variant="body2" sx={{ color: "#0e1b15", fontWeight: 600 }}>Products</Typography>
-            </Stack>
-
+        <Box className="w-full px-4 py-4 font-display bg-[#f6f8f7] min-h-screen">
             <Box display="flex" justifyContent="space-between" alignItems="flex-end" mb={4} gap={3}>
                 <Box>
                     <Typography variant="h4" sx={{ color: "#0e1b15", fontWeight: 900, letterSpacing: '-0.02em' }}>Products</Typography>

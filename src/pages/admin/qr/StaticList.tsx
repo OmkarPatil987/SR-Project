@@ -5,11 +5,11 @@ import {
     Box, Paper, Button, TextField, Table, TableBody,
     TableCell, TableContainer, TableHead, TableRow, Tooltip,
     Chip, Stack, TablePagination, Skeleton, InputAdornment, Typography, Avatar,
-    IconButton, Grid, Switch
+    IconButton, Switch, CircularProgress
 } from "@mui/material";
 import {
     Add, QrCode2, Edit, Search, FileDownload,
-    TrendingUp, CheckCircle, Warning, Sensors, MoreVert
+    TrendingUp, CheckCircle, Warning, Sensors, Visibility
 } from "@mui/icons-material";
 import { RootState } from "../../../redux/store";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
@@ -24,6 +24,7 @@ const StaticQRList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [qrList, setQrList] = useState<any[]>([]);
     const [totalCount, setTotalCount] = useState(0);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
     const [payload, setPayload] = useState({
         offset: 0,
@@ -42,7 +43,7 @@ const StaticQRList: React.FC = () => {
                 dispatch(resetRefresh());
             }
         } catch (error) {
-            dispatch(showSnackbar({ type: "error", message: "Failed to fetch QR list" }));
+            dispatch(showSnackbar({ type: "error", message: "Failed to fetch Static QR list" }));
         } finally {
             setLoading(false);
         }
@@ -52,18 +53,33 @@ const StaticQRList: React.FC = () => {
         getQRList();
     }, [getQRList]);
 
-    const handleDownload = async (url: string, fileName: string) => {
+    // --- Forced Download Logic using full API path ---
+    const handleDownload = async (path: string, fileName: string, uuid: string) => {
+        if (!path) return;
+        setDownloadingId(uuid);
+
         try {
-            const response = await fetch(url);
+            const response = await fetch(path);
+            if (!response.ok) throw new Error();
+
             const blob = await response.blob();
-            const link = document.createElement("a");
-            link.href = window.URL.createObjectURL(blob);
-            link.download = `${fileName}.png`;
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${fileName.replace(/\s+/g, '_')}_Static_QR.png`;
             document.body.appendChild(link);
             link.click();
+
             document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            dispatch(showSnackbar({ type: "success", message: "Download successful" }));
         } catch (error) {
-            dispatch(showSnackbar({ type: "error", message: "Download failed" }));
+            // Fallback: If fetch fails, open image in new tab
+            window.open(path, '_blank');
+            dispatch(showSnackbar({ type: "warning", message: "Direct download blocked. Opened in new tab." }));
+        } finally {
+            setDownloadingId(null);
         }
     };
 
@@ -83,30 +99,22 @@ const StaticQRList: React.FC = () => {
     );
 
     return (
-        <Box sx={{  mx: "auto", px: 4, py: 4 }}>
+        <Box sx={{ mx: "auto", px: 4, py: 4 }}>
             {/* Header Section */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 4 }}>
                 <Box>
                     <Typography variant="h4" sx={{ fontWeight: 900, color: "#0e1b12", mb: 0.5 }}>Static QR Inventory</Typography>
-                    <Typography variant="body1" sx={{ color: "text.secondary" }}>
-                        Manage and track your agricultural product QR codes.
-                    </Typography>
+                    <Typography variant="body1" sx={{ color: "text.secondary" }}>Manage and track your agricultural product QR codes.</Typography>
                 </Box>
                 <Button
                     variant="contained"
                     startIcon={<Add />}
                     onClick={() => navigate("/admin/create-qr?type=static")}
-                    sx={{
-                        bgcolor: '#13ae47', '&:hover': { bgcolor: '#0f8a38' },
-                        height: 48, px: 3, borderRadius: 2, fontWeight: 700, textTransform: 'none',
-                        boxShadow: '0 4px 14px 0 rgba(19,174,71,0.39)'
-                    }}
+                    sx={{ bgcolor: '#13ae47', height: 48, px: 3, borderRadius: 2, fontWeight: 700, textTransform: 'none' }}
                 >
                     Generate Static QR
                 </Button>
             </Box>
-
-            {/* Stats Row */}
 
             {/* Table Container */}
             <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid #e0e0e0', overflow: 'hidden' }}>
@@ -116,7 +124,6 @@ const StaticQRList: React.FC = () => {
                             All Static QRs
                         </Button>
                     </Stack>
-
                     <TextField
                         size="small"
                         placeholder="Search QRs, products..."
@@ -147,11 +154,7 @@ const StaticQRList: React.FC = () => {
                                 {qrList.map((row) => (
                                     <TableRow key={row.detail_uuid} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                         <TableCell>
-                                            <Avatar
-                                                src={row.qr_path}
-                                                variant="rounded"
-                                                sx={{ width: 48, height: 48, border: '1px solid #eee', p: 0.5, bgcolor: '#fff', cursor: 'zoom-in', transition: '0.2s' }}
-                                            />
+                                            <Avatar src={row.qr_path} variant="rounded" sx={{ width: 48, height: 48, border: '1px solid #eee', p: 0.5, bgcolor: '#fff' }} />
                                         </TableCell>
                                         <TableCell>
                                             <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e1b12' }}>{row.product_name}</Typography>
@@ -159,40 +162,51 @@ const StaticQRList: React.FC = () => {
                                         </TableCell>
                                         <TableCell>
                                             <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.disabled', display: 'block', mb: 0.5 }}>#{row.qr_id}</Typography>
-                                            <Chip
-                                                label={row.qr_type?.toUpperCase()}
-                                                size="small"
-                                                sx={{ fontSize: '0.65rem', fontWeight: 800, bgcolor: '#f3f4f6', color: '#374151', borderRadius: 1 }}
-                                            />
+                                            <Chip label={row.qr_type?.toUpperCase()} size="small" sx={{ fontSize: '0.65rem', fontWeight: 800, bgcolor: '#f3f4f6', color: '#374151', borderRadius: 1 }} />
                                         </TableCell>
                                         <TableCell>
                                             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>M: {row.manufacturing_date}</Typography>
                                             <Typography sx={{ fontSize: '0.75rem', color: '#13ae47', fontWeight: 700 }}>E: {row.expiry_date}</Typography>
                                         </TableCell>
                                         <TableCell>
-                                            {/* Mapping to detail_created_at and splitting to show date only */}
-                                            <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
-                                                {row.detail_created_at?.split('T')[0]}
-                                            </Typography>
+                                            <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>{row.detail_created_at?.split('T')[0]}</Typography>
                                         </TableCell>
                                         <TableCell align="center">
                                             <Switch checked={row.status} size="small" color="primary" />
                                         </TableCell>
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-                                                <Tooltip title="Download PNG">
-                                                    <IconButton size="small" onClick={() => handleDownload(row.qr_path, row.product_code)} sx={{ color: 'text.secondary' }}>
-                                                        <FileDownload fontSize="small" />
+                                                {/* Visibility Icon to open public page */}
+                                                <Tooltip title="View Public Page">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => window.open(`/p/${row.qr_uuid}`, '_blank')}
+                                                        sx={{ color: '#4c9a74' }}
+                                                    >
+                                                        <Visibility fontSize="small" />
                                                     </IconButton>
                                                 </Tooltip>
-                                                <Tooltip title="Edit">
-                                                    <IconButton size="small" onClick={() => navigate(`/admin/create-qr?uuid=${row.product_master_uuid}&type=static`)} sx={{ color: 'text.secondary' }}>
+
+                                                <Tooltip title="Download PNG">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleDownload(row.qr_path, row.product_name, row.detail_uuid)}
+                                                        disabled={downloadingId === row.detail_uuid}
+                                                        sx={{ color: 'text.secondary' }}
+                                                    >
+                                                        {downloadingId === row.detail_uuid ? <CircularProgress size={18} color="inherit" /> : <FileDownload fontSize="small" />}
+                                                    </IconButton>
+                                                </Tooltip>
+
+                                                <Tooltip title="Edit Details">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => navigate(`/admin/create-qr?uuid=${row.product_master_uuid}&detail_uuid=${row.qr_uuid}&type=static`)}
+                                                        sx={{ color: 'text.secondary' }}
+                                                    >
                                                         <Edit fontSize="small" />
                                                     </IconButton>
                                                 </Tooltip>
-                                                <IconButton size="small" sx={{ color: 'text.secondary' }}>
-                                                    <MoreVert fontSize="small" />
-                                                </IconButton>
                                             </Stack>
                                         </TableCell>
                                     </TableRow>
@@ -205,8 +219,8 @@ const StaticQRList: React.FC = () => {
                 <TablePagination
                     component="div"
                     count={totalCount}
-                    page={payload.offset}
-                    onPageChange={(_, page) => setPayload(p => ({ ...p, offset: page }))}
+                    page={payload.offset / payload.limit}
+                    onPageChange={(_, page) => setPayload(p => ({ ...p, offset: page * payload.limit }))}
                     rowsPerPage={payload.limit}
                     onRowsPerPageChange={(e) => setPayload(p => ({ ...p, limit: +e.target.value, offset: 0 }))}
                     sx={{ borderTop: '1px solid #f0f0f0' }}

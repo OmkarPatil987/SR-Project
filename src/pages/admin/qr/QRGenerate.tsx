@@ -6,15 +6,14 @@ import dayjs, { Dayjs } from "dayjs";
 
 // MUI Imports
 import {
-    Box, Button, Card, CardContent, Grid, TextField,
+    Box, Button, Card, Grid, TextField,
     IconButton, Autocomplete, CircularProgress,
-    InputAdornment, Typography, Breadcrumbs, Link,
+    Typography, Breadcrumbs, Link,
     Divider, Stack
 } from "@mui/material";
 import {
-    ArrowBack, QrCode, InfoOutlined, GavelOutlined,
-    ChevronRight, CalendarToday, EventBusy, Visibility,
-    LightbulbOutlined, Sync, QrCode2, Layers, Business
+    ArrowBack, InfoOutlined, GavelOutlined,
+    ChevronRight, Sync, QrCode2, Layers
 } from "@mui/icons-material";
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -88,6 +87,12 @@ const QRForm: React.FC = () => {
         '& fieldset': { border: 'none' }
     };
 
+    // Helper to determine back navigation path based on type
+    const getBackPath = (type: string) => {
+        if (type === "dynamic") return "/admin/dynamic-qr";
+        return "/admin/static-qr";
+    };
+
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -98,22 +103,25 @@ const QRForm: React.FC = () => {
                     setLoading(true);
                     const res = await FetchQRDetailsService({ qr_uuid: uuid });
                     if (res.code === 200 && res.data) {
-                        const d = res.data;
+                        // MAPPING BASED ON YOUR PROVIDED JSON STRUCTURE
+                        const detail = res.data.product_detail;
+                        const master = res.data.product_master;
+
                         setInitialValues({
-                            product_master_uuid: d.product_master_uuid || "",
-                            type: d.type,
-                            gazette_notification_number: d.gazette_notification_number || "",
-                            gazette_notification_date: d.gazette_notification_date ? dayjs(d.gazette_notification_date) : null,
-                            biostimulant_title: d.biostimulant_title || "",
-                            biostimulant_composition: d.biostimulant_composition || "",
-                            crops: d.crops || "",
-                            doses: d.doses || "",
-                            application_method: d.application_method || "",
-                            manufacturer_details: d.manufacturer_details || "",
-                            company_name: d.company_name || "",
-                            batch_name: d.batch_name || "",
-                            manufacturing_date: d.manufacturing_date ? dayjs(d.manufacturing_date) : null,
-                            expiry_date: d.expiry_date ? dayjs(d.expiry_date) : null,
+                            product_master_uuid: master?.uuid || "",
+                            type: detail?.type || "static",
+                            gazette_notification_number: detail?.gazette_notification_number || "",
+                            gazette_notification_date: detail?.gazette_notification_date ? dayjs(detail.gazette_notification_date) : null,
+                            biostimulant_title: detail?.biostimulant_title || "",
+                            biostimulant_composition: detail?.biostimulant_composition || "",
+                            crops: detail?.crops || "",
+                            doses: detail?.doses || "",
+                            application_method: detail?.application_method || "",
+                            manufacturer_details: detail?.manufacturer_details || "",
+                            company_name: detail?.company_name || "",
+                            batch_name: detail?.batch_name || "",
+                            manufacturing_date: detail?.manufacturing_date ? dayjs(detail.manufacturing_date) : null,
+                            expiry_date: detail?.expiry_date ? dayjs(detail.expiry_date) : null,
                         });
                     }
                 }
@@ -133,7 +141,7 @@ const QRForm: React.FC = () => {
 
         if (response.code === 200) {
             dispatch(showSnackbar({ type: "success", message: "QR Processed Successfully" }));
-            navigate(values.type === "dynamic" ? "/admin/dynamic-qr" : "/admin/static-qr");
+            navigate(getBackPath(values.type));
         }
         setSubmitting(false);
     };
@@ -143,14 +151,31 @@ const QRForm: React.FC = () => {
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box sx={{ maxWidth: '1024px', mx: 'auto', p: { xs: 2, md: 4 }, fontFamily: 'Manrope' }}>
+
+                {/* BREADCRUMBS: Product navigates based on type */}
                 <Breadcrumbs separator={<ChevronRight fontSize="small" />} sx={{ mb: 3 }}>
-                    <Link underline="hover" sx={{ color: '#06f957', fontWeight: 600, cursor: 'pointer' }} onClick={() => navigate("/admin/qr")}>QR Management</Link>
-                    <Typography color="text.secondary" sx={{ fontWeight: 500 }}>Generate QR Code</Typography>
+                    <Link
+                        underline="hover"
+                        sx={{ color: '#4c9a74', fontWeight: 600, cursor: 'pointer' }}
+                        onClick={() => navigate(getBackPath(initialValues.type))}
+                    >
+                        {initialValues.type === "dynamic" ? "Dynamic QR Management" : "Static QR Management"}
+                    </Link>
+                    <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
+                        {isEdit ? 'Edit QR Code' : 'Generate QR Code'}
+                    </Typography>
                 </Breadcrumbs>
 
                 <Box sx={{ mb: 4 }}>
-                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f2316', mb: 1 }}>Generate QR Code</Typography>
-                    <Typography variant="body1" color="text.secondary">Provide batch and regulatory details for compliance.</Typography>
+                    <PageHead
+                        primary={isEdit ? "Edit QR Code" : "Generate QR Code"}
+                        secondary="Provide batch and regulatory details for compliance."
+                        back={
+                            <IconButton onClick={() => navigate(getBackPath(initialValues.type))} size="small" sx={{ mr: 1 }}>
+                                <ArrowBack />
+                            </IconButton>
+                        }
+                    />
                 </Box>
 
                 <Formik initialValues={initialValues} validationSchema={qrValidationSchema} onSubmit={handleSubmit} enableReinitialize>
@@ -187,7 +212,6 @@ const QRForm: React.FC = () => {
                             </Box>
 
                             <Card sx={{ borderRadius: 4, border: '1px solid #e0e0e0', boxShadow: 'none', overflow: 'hidden' }}>
-                                {/* Section 1 */}
                                 <Box sx={{ p: 4 }}>
                                     <Stack direction="row" spacing={2} alignItems="center" mb={4}>
                                         <Box sx={{ bgcolor: 'rgba(6, 249, 87, 0.1)', p: 1, borderRadius: 2, display: 'flex' }}><InfoOutlined sx={{ color: '#06f957' }} /></Box>
@@ -200,7 +224,11 @@ const QRForm: React.FC = () => {
                                             <Autocomplete
                                                 options={products} getOptionLabel={(option) => option.name || ""}
                                                 value={products.find(p => p.uuid === values.product_master_uuid) || null}
-                                                onChange={(_, val) => setFieldValue("product_master_uuid", val ? val.uuid : "")}
+                                                onChange={(_, val) => {
+                                                    setFieldValue("product_master_uuid", val ? val.uuid : "");
+                                                    // Auto-fill company name if product is selected
+                                                    if (val?.company_name) setFieldValue("company_name", val.company_name);
+                                                }}
                                                 renderInput={(params) => (
                                                     <TextField {...params}
                                                         placeholder="Choose product..."
@@ -215,7 +243,7 @@ const QRForm: React.FC = () => {
                                             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Company Name</Typography>
                                             <TextField
                                                 fullWidth name="company_name"
-                                                placeholder="Choose enterprise..."
+                                                placeholder="Choice Agro..."
                                                 value={values.company_name} onChange={handleChange}
                                                 error={touched.company_name && !!errors.company_name}
                                                 helperText={touched.company_name && errors.company_name}
@@ -238,7 +266,7 @@ const QRForm: React.FC = () => {
                                             <DatePicker
                                                 value={values.manufacturing_date}
                                                 onChange={(val) => setFieldValue("manufacturing_date", val)}
-                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.manufacturing_date && !!errors.manufacturing_date, helperText: touched.manufacturing_date && errors.manufacturing_date as string } }}
+                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.manufacturing_date && !!errors.manufacturing_date, helperText: touched.manufacturing_date && (errors.manufacturing_date as string) } }}
                                             />
                                         </Grid>
                                         <Grid item xs={12} md={6}>
@@ -246,7 +274,7 @@ const QRForm: React.FC = () => {
                                             <DatePicker
                                                 value={values.expiry_date}
                                                 onChange={(val) => setFieldValue("expiry_date", val)}
-                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.expiry_date && !!errors.expiry_date, helperText: touched.expiry_date && errors.expiry_date as string } }}
+                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.expiry_date && !!errors.expiry_date, helperText: touched.expiry_date && (errors.expiry_date as string) } }}
                                             />
                                         </Grid>
                                         <Grid item xs={12}>
@@ -264,7 +292,6 @@ const QRForm: React.FC = () => {
 
                                 <Divider sx={{ borderColor: '#f0f0f0' }} />
 
-                                {/* Section 2 */}
                                 <Box sx={{ p: 4, bgcolor: '#fafafa' }}>
                                     <Stack direction="row" spacing={2} alignItems="center" mb={4}>
                                         <Box sx={{ bgcolor: 'rgba(6, 249, 87, 0.1)', p: 1, borderRadius: 2, display: 'flex' }}><GavelOutlined sx={{ color: '#06f957' }} /></Box>
@@ -288,7 +315,7 @@ const QRForm: React.FC = () => {
                                             <DatePicker
                                                 value={values.gazette_notification_date}
                                                 onChange={(val) => setFieldValue("gazette_notification_date", val)}
-                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.gazette_notification_date && !!errors.gazette_notification_date, helperText: touched.gazette_notification_date && errors.gazette_notification_date as string } }}
+                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.gazette_notification_date && !!errors.gazette_notification_date, helperText: touched.gazette_notification_date && (errors.gazette_notification_date as string) } }}
                                             />
                                         </Grid>
                                         <Grid item xs={12}>
@@ -305,7 +332,7 @@ const QRForm: React.FC = () => {
                                             <TextField
                                                 fullWidth multiline rows={3}
                                                 name="biostimulant_composition"
-                                                placeholder="List active ingredients and concentrations..."
+                                                placeholder="List active ingredients..."
                                                 value={values.biostimulant_composition} onChange={handleChange}
                                                 sx={inputStyles}
                                             />
@@ -341,9 +368,9 @@ const QRForm: React.FC = () => {
                                 </Box>
 
                                 <Box sx={{ p: 4, display: 'flex', justifyContent: 'flex-end', gap: 2, bgcolor: '#fff' }}>
-                                    <Button variant="outlined" onClick={() => navigate("/admin/qr")} sx={{ borderRadius: 2, px: 4, fontWeight: 700 }}>Cancel</Button>
+                                    <Button variant="outlined" onClick={() => navigate(getBackPath(values.type))} sx={{ borderRadius: 2, px: 4, fontWeight: 700 }}>Cancel</Button>
                                     <Button type="submit" variant="contained" disabled={isSubmitting} sx={{ bgcolor: '#06f957', color: '#000', borderRadius: 2, px: 5, fontWeight: 800, boxShadow: '0 8px 16px rgba(6, 249, 87, 0.2)', '&:hover': { bgcolor: '#05e64f' } }}>
-                                        {isSubmitting ? "Processing..." : "Generate QR"}
+                                        {isSubmitting ? "Processing..." : (isEdit ? "Update QR" : "Generate QR")}
                                     </Button>
                                 </Box>
                             </Card>

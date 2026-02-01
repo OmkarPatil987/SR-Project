@@ -73,7 +73,7 @@ const LoginPage = () => {
                     message: `✅ Login Successful \n Welcome, ${rec?.userDetails?.name}`,
                 })
             );
-            navigate("/admin/dashboard");
+            navigate("/admin/products");
         } else {
             setErrorMessage("Invalid username or password.");
             dispatch(

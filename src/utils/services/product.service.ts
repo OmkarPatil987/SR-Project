@@ -30,7 +30,7 @@ export const StoreQRService = (payload: any) => handlePostRequest<any>('v1/produ
 
 export const UpdateQRService = (payload: any) => handlePostRequest<any>('v1/qr/update', payload, CMRF_NGO_ADMIN_SERVER);
 
-export const FetchQRDetailsService = (payload: any) => handlePostRequest<any>('v1/qr/details', payload, CMRF_NGO_ADMIN_SERVER);
+export const FetchQRDetailsService = (payload: any) => handlePostRequest<any>('v1/qr', payload, CMRF_NGO_ADMIN_SERVER);
 
 //FetchCompanyDetailsService
 export const FetchCompanyDetailsService = (payload: any) => handlePostRequest<any>('v1/company/details', payload, CMRF_NGO_ADMIN_SERVER);
