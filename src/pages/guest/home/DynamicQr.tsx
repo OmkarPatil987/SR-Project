@@ -27,7 +27,7 @@ const DynamicQr: React.FC = () => {
                                     {/* Phone Screen Content - Using your Image */}
                                     <div className="h-full w-full overflow-hidden bg-stone-50">
                                         <img
-                                            src="/images/home/p6.png"
+                                            src="/images/home/p6.webp"
                                             alt="Dynamic QR Content Preview"
                                             className="w-full h-full object-cover object-top"
                                         />

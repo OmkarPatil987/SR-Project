@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 const HERO_SLIDES = [
-    "/images/home/b4.png",
-    "/images/home/b5.png",
+    "/images/home/b4.webp",
+    "/images/home/b5.webp",
 ];
 
 export const HeroSlider = () => {
