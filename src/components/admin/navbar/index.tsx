@@ -3,12 +3,12 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Theme } from '@mui/material/styles';
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useMediaQuery, Collapse } from '@mui/material'
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useMediaQuery, Collapse ,} from '@mui/material'
 import {
 	Description,
 	ExpandLess, Dashboard,
 	ExpandMore, AccountTree, Ballot, WaterDamage, Assignment, PhotoLibrary, MonetizationOn, PersonAdd, VolunteerActivism,
-	Category, ReceiptLong
+    Category, ReceiptLong, Business, Inventory, QrCode, QrCodeScanner
 } from '@mui/icons-material';
 
 import { RootState } from '../../../redux/store';
@@ -22,7 +22,7 @@ const Icons = {
 	Assignment,         
 	PhotoLibrary,    
 	MonetizationOn,     
-	PersonAdd, VolunteerActivism, Category , ReceiptLong   
+    PersonAdd, VolunteerActivism, Category, ReceiptLong, Business, Inventory, QrCode, QrCodeScanner
 };
 
 interface MenuItem {

@@ -187,7 +187,7 @@ export default function AdminTopBar() {
                                 color={theme.palette.text.secondary}
                                 sx={{ display: { xs: "0.1rem", md: "block" }, fontSize: { xs: "0.6rem", md: "0.8rem" } }}
                             >
-                                Manage products, generate QR codes, and track inventory
+                                Products QR code management made easy
                             </Typography>
                         </Box>
                     </Box>

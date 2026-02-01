@@ -7,11 +7,13 @@ import HowItWorks from './HowItWorks'
 import Benefits from './Benefits'
 import AboutSection from './AboutSection'
 import Footer from './Footer'
+import QRGenerator from './QRGenerator'
 
 const HomePage = () => {
   return (
     <div>
           <Hero />
+          {/* <QRGenerator/> */}
           <ComplianceSection />
           <StaticQr />
           <DynamicQr />

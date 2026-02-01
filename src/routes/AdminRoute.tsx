@@ -7,9 +7,14 @@ import AdminLayout from '../layout/AdminLayout';
 import { NAVIGATE_ADMIN } from '../constant';
 import ProductForm from '../pages/admin/products/Components/CreateProduct';
 import ProductDetail from '../pages/admin/products/Components/ProductDetails';
-import ProductList from '../pages/admin/products/ProductList';
+// import ProductList from '../pages/admin/products/ProductList';
 import UserListPage from '../pages/admin/users';
 import CompanyList from '../pages/admin/companies';
+import ProductList from '../pages/admin/products/Master/ProductList';
+import QRList from '../pages/admin/qr/StaticList';
+import QRForm from '../pages/admin/qr/QRGenerate';
+import QRListDynamic from '../pages/admin/qr/DynamicQr';
+import CompanyForm from '../pages/admin/companies/CreateCompnay';
 
 
 const DashboardPage = lazy(() => import('../pages/admin/dashboard'))
@@ -26,6 +31,10 @@ const AdminRoute = () => {
                     <Route path={NAVIGATE_ADMIN.PRODUCT_CREATE} element={<ProductForm />} />
                     <Route path={NAVIGATE_ADMIN.PRODUCT_DETAILS} element={<ProductDetail />} />
                     <Route path={NAVIGATE_ADMIN.CAMPANIES} element={<CompanyList />} />
+                    <Route path={NAVIGATE_ADMIN.CAMPANIES_CREATE} element={<CompanyForm />} />
+                    <Route path={NAVIGATE_ADMIN.QR_STATIC} element={<QRList />} />
+                    <Route path={NAVIGATE_ADMIN.QR_DYNAMIC} element={<QRListDynamic />} />
+                    <Route path={NAVIGATE_ADMIN.QR_CREATE} element={<QRForm />} />
                     <Route
                         path={NAVIGATE_ADMIN.USERS}
                         element={<UserListPage />}

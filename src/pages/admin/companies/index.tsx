@@ -1,70 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-    Box,
-    Card,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TablePagination,
-    TextField,
-    Typography,
-    Chip,
-    IconButton,
-    InputAdornment,
-    Button,
-    Avatar,
-    Stack,
-    Tooltip,
-    useTheme,
-    alpha
+    Box, Card, Table, TableBody, TableCell, TableContainer, TableHead,
+    TableRow, TablePagination, TextField, Typography, Chip, IconButton,
+    InputAdornment, Button, Avatar, Stack, Tooltip, Divider, Breadcrumbs,
+    Link, Skeleton, Drawer,
+    Grid
 } from '@mui/material';
 import {
     Search as SearchIcon,
     Edit as EditIcon,
     Add as AddIcon,
+    ChevronRight,
+    Visibility,
+    Close as CloseIcon,
     Business as BusinessIcon,
-    VerifiedUser as VerifiedIcon,
-    GppBad as InactiveIcon,
-    ContentCopy as CopyIcon
+    LocationOn as LocationIcon,
+    AccountBalance as BankIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import PageHead from '../../../components/common/page/PageHead';
 import { FetchCompanyListService } from '../../../utils/services/product.service';
-
-// --- Helper for Random Avatar Colors ---
-function stringToColor(string: string) {
-    let hash = 0;
-    let i;
-    for (i = 0; i < string.length; i += 1) {
-        hash = string.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    let color = '#';
-    for (i = 0; i < 3; i += 1) {
-        const value = (hash >> (i * 8)) & 0xff;
-        color += `00${value.toString(16)}`.slice(-2);
-    }
-    return color;
-}
-
-function stringAvatar(name: string) {
-    return {
-        sx: {
-            bgcolor: stringToColor(name),
-            width: 36,
-            height: 36,
-            fontSize: '0.875rem',
-            fontWeight: 600
-        },
-        children: `${name.split(' ')[0][0]}${name.split(' ')[1] ? name.split(' ')[1][0] : ''}`.toUpperCase(),
-    };
-}
 
 const CompanyList = () => {
     const navigate = useNavigate();
-    const theme = useTheme();
 
     // State
     const [companies, setCompanies] = useState<any[]>([]);
@@ -74,7 +31,15 @@ const CompanyList = () => {
     const [totalCount, setTotalCount] = useState<number>(0);
     const [searchQuery, setSearchQuery] = useState<string>('');
 
-    // Fetch Data
+    // Drawer State
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [selectedCompany, setSelectedCompany] = useState<any>(null);
+
+    const inputStyles = {
+        '& .MuiOutlinedInput-root': { bgcolor: '#f6f8f7', border: 'none', borderRadius: '0.75rem' },
+        '& fieldset': { border: 'none' }
+    };
+
     const fetchCompanies = async () => {
         setLoading(true);
         const payload = {
@@ -84,7 +49,7 @@ const CompanyList = () => {
         };
         try {
             const { code, data } = await FetchCompanyListService(payload);
-            if (code === 200 && data && data.data) {
+            if (code === 200 && data?.data) {
                 setCompanies(data.data);
                 setTotalCount(data.total_count);
             } else {
@@ -93,7 +58,6 @@ const CompanyList = () => {
             }
         } catch (error) {
             console.error(error);
-            setCompanies([]);
         } finally {
             setLoading(false);
         }
@@ -103,180 +67,120 @@ const CompanyList = () => {
         fetchCompanies();
     }, [page, rowsPerPage]);
 
-    // Handlers
-    const handleChangePage = (event: unknown, newPage: number) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(event.target.value);
+    const handleViewDetails = (company: any) => {
+        setSelectedCompany(company);
+        setDrawerOpen(true);
     };
 
     const handleEdit = (uuid: string) => {
-        navigate(`/companies/edit/${uuid}`);
+        navigate(`/admin/company/create?uuid=${uuid}`);
     };
 
-    return (
-        <Box sx={{ p: 3, backgroundColor: '#f4f6f8', minHeight: '100vh' }}>
-            {/* Header Section */}
-            <PageHead
-                primary="Company Management"
-                back={<BusinessIcon fontSize="large" sx={{ color: theme.palette.primary.main }} />}
-                secondary={
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => navigate('/companies/create')}
-                        sx={{ borderRadius: 2, px: 3, textTransform: 'none', fontWeight: 600 }}
-                    >
-                        New Company
-                    </Button>
-                }
-            />
+    // Helper to render Detail Rows in Drawer
+    const DetailItem = ({ label, value }: { label: string, value: any }) => (
+        <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" sx={{ color: '#4c9a74', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {label.replace(/_/g, ' ')}
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600, color: '#0d1b15' }}>
+                {value === true ? 'Yes' : value === false ? 'No' : value || 'N/A'}
+            </Typography>
+        </Box>
+    );
 
-            <Card elevation={0} sx={{ mt: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
-                {/* Search Bar */}
-                <Box sx={{ p: 3, display: 'flex', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
+    return (
+        <Box sx={{ p: { xs: 2, md: 4 }, backgroundColor: '#f6f8f7', minHeight: '100vh' }}>
+            {/* Breadcrumbs */}
+            <Breadcrumbs separator={<ChevronRight fontSize="small" sx={{ color: '#4c9a74' }} />} sx={{ mb: 2 }}>
+                <Link underline="hover" sx={{ color: '#4c9a74', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Dashboard</Link>
+                <Typography sx={{ color: '#0d1b15', fontSize: '0.875rem', fontWeight: 600 }}>Companies</Typography>
+            </Breadcrumbs>
+
+            {/* Page Heading */}
+            <Box display="flex" justifyContent="space-between" alignItems="flex-end" mb={4} gap={3}>
+                <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#0d1b15', letterSpacing: '-0.02em' }}>Companies</Typography>
+                    <Typography sx={{ color: '#4c9a74', mt: 1 }}>Manage and track registered enterprises in the compliance network.</Typography>
+                </Box>
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => navigate('/admin/company/create')}
+                    sx={{ bgcolor: '#0fbd69', borderRadius: '0.75rem', px: 3, height: 44, fontWeight: 700, textTransform: 'none' }}
+                >
+                    New Company
+                </Button>
+            </Box>
+
+            <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid #e7f3ed', overflow: 'hidden' }}>
+                <Box sx={{ p: 3, display: 'flex', alignItems: 'center', bgcolor: '#fff', borderBottom: '1px solid #e7f3ed' }}>
                     <TextField
                         size="small"
                         placeholder="Search companies..."
                         value={searchQuery}
-                        onChange={handleSearch}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && fetchCompanies()}
                         InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon color="action" />
-                                </InputAdornment>
-                            ),
+                            startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: '#4c9a74' }} /></InputAdornment>,
                         }}
-                        sx={{
-                            width: 320,
-                            '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                backgroundColor: 'background.paper'
-                            }
-                        }}
+                        sx={{ ...inputStyles, width: 350 }}
                     />
                 </Box>
 
-                {/* Table */}
                 <TableContainer>
-                    <Table sx={{ minWidth: 1200 }} aria-label="company table">
-                        <TableHead sx={{ bgcolor: alpha(theme.palette.primary.main, 0.04) }}>
+                    <Table sx={{ minWidth: 1100 }}>
+                        <TableHead sx={{ bgcolor: '#f8fbfa' }}>
                             <TableRow>
-                                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase' }}>Company Name</TableCell>
-                                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase' }}>Email Address</TableCell>
-                                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase' }}>Mobile Number</TableCell>
-                                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase' }}>GST Number</TableCell>
-                                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase' }}>PAN Number</TableCell>
-                                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase' }}>Status</TableCell>
-                                <TableCell sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.75rem', textTransform: 'uppercase' }} align="right">Actions</TableCell>
+                                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Company Details</TableCell>
+                                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Contact Info</TableCell>
+                                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>GST / PAN</TableCell>
+                                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Status</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                                        <Typography variant="body1" color="text.secondary">Loading data...</Typography>
-                                    </TableCell>
-                                </TableRow>
-                            ) : companies.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                                        <Typography variant="body1" color="text.secondary">No companies found.</Typography>
-                                    </TableCell>
-                                </TableRow>
+                                [...Array(5)].map((_, i) => (
+                                    <TableRow key={i}><TableCell colSpan={5}><Skeleton height={60} /></TableCell></TableRow>
+                                ))
                             ) : (
                                 companies.map((row) => (
-                                    <TableRow
-                                        key={row.uuid}
-                                        sx={{
-                                            '&:last-child td, &:last-child th': { border: 0 },
-                                            '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.02) },
-                                            transition: 'background-color 0.2s'
-                                        }}
-                                    >
-                                        {/* 1. Company Name & ID */}
-                                        <TableCell component="th" scope="row">
-                                            <Stack direction="row" spacing={1.5} alignItems="center">
-                                                <Avatar {...stringAvatar(row.company_name)} variant="rounded" />
+                                    <TableRow key={row.company_uuid} hover>
+                                        <TableCell>
+                                            <Stack direction="row" spacing={2} alignItems="center">
+                                                <Avatar variant="rounded" sx={{ bgcolor: '#e7f3ed', color: '#0fbd69', fontWeight: 700 }}>
+                                                    {row.company_name?.charAt(0)}
+                                                </Avatar>
                                                 <Box>
-                                                    <Typography variant="subtitle2" fontWeight={700} sx={{ color: 'text.primary' }}>
-                                                        {row.company_name}
-                                                    </Typography>
-                                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
-                                                        ID: {row.id}
-                                                    </Typography>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{row.company_name}</Typography>
+                                                    <Typography variant="caption" sx={{ color: '#4c9a74' }}>ID: {row.id}</Typography>
                                                 </Box>
                                             </Stack>
                                         </TableCell>
-
-                                        {/* 2. Email */}
                                         <TableCell>
-                                            <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                                                {row.email}
-                                            </Typography>
+                                            <Typography variant="body2">{row.email}</Typography>
+                                            <Typography variant="caption" color="text.secondary">{row.mobile}</Typography>
                                         </TableCell>
-
-                                        {/* 3. Mobile */}
                                         <TableCell>
-                                            <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                                                {row.mobile}
-                                            </Typography>
+                                            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>GST: {row.gst_no}</Typography>
+                                            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>PAN: {row.pan_no}</Typography>
                                         </TableCell>
-
-                                        {/* 4. GST No */}
                                         <TableCell>
-                                            <Typography variant="body2" sx={{ fontFamily: 'monospace', color: 'text.primary', bgcolor: 'grey.100', px: 1, py: 0.5, borderRadius: 1, width: 'fit-content' }}>
-                                                {row.gst_no}
-                                            </Typography>
+                                            <Chip label={row.is_active ? "Active" : "Inactive"} size="small" color={row.is_active ? "success" : "default"} />
                                         </TableCell>
-
-                                        {/* 5. PAN No */}
-                                        <TableCell>
-                                            <Typography variant="body2" sx={{ fontFamily: 'monospace', color: 'text.primary' }}>
-                                                {row.pan_no}
-                                            </Typography>
-                                        </TableCell>
-
-                                        {/* 6. Status */}
-                                        <TableCell>
-                                            <Chip
-                                                icon={row.is_active ? <VerifiedIcon sx={{ fontSize: '1rem !important' }} /> : <InactiveIcon sx={{ fontSize: '1rem !important' }} />}
-                                                label={row.is_active ? "Active" : "Inactive"}
-                                                color={row.is_active ? "success" : "default"}
-                                                size="small"
-                                                variant="outlined"
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    borderRadius: 1,
-                                                    bgcolor: row.is_active ? alpha(theme.palette.success.main, 0.05) : 'transparent',
-                                                    borderColor: row.is_active ? alpha(theme.palette.success.main, 0.3) : 'default',
-                                                }}
-                                            />
-                                        </TableCell>
-
-                                        {/* 7. Actions */}
                                         <TableCell align="right">
-                                            <Tooltip title="Edit Company">
-                                                <IconButton
-                                                    onClick={() => handleEdit(row.uuid)}
-                                                    sx={{
-                                                        color: 'primary.main',
-                                                        bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                                        '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.2) }
-                                                    }}
-                                                    size="small"
-                                                >
-                                                    <EditIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
+                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                                <Tooltip title="View Details">
+                                                    <IconButton size="small" onClick={() => handleViewDetails(row)} sx={{ color: '#4c9a74' }}>
+                                                        <Visibility fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Edit">
+                                                    <IconButton size="small" onClick={() => handleEdit(row.company_uuid)} sx={{ color: '#0fbd69' }}>
+                                                        <EditIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Stack>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -286,16 +190,93 @@ const CompanyList = () => {
                 </TableContainer>
 
                 <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
                     component="div"
                     count={totalCount}
-                    rowsPerPage={rowsPerPage}
                     page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    sx={{ borderTop: '1px solid', borderColor: 'divider' }}
+                    onPageChange={(_, newPage) => setPage(newPage)}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={(e) => {
+                        setRowsPerPage(parseInt(e.target.value, 10));
+                        setPage(0);
+                    }}
                 />
             </Card>
+
+            {/* Company Details Drawer */}
+            <Drawer
+                anchor="right"
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+                PaperProps={{ sx: { width: { xs: '100%', sm: 600 }, p: 3, borderLeft: '1px solid #e7f3ed' } }}
+            >
+                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h5" sx={{ fontWeight: 900, color: '#0d1b15' }}>Company Profile</Typography>
+                    <IconButton onClick={() => setDrawerOpen(false)} size="small">
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {selectedCompany && (
+                    <Box sx={{ overflowY: 'auto' }}>
+                        {/* Header Badge */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4, p: 2, bgcolor: '#f8fbfa', borderRadius: 3 }}>
+                            <Avatar variant="rounded" sx={{ width: 56, height: 56, bgcolor: '#0fbd69' }}>
+                                <BusinessIcon fontSize="large" />
+                            </Avatar>
+                            <Box>
+                                <Typography variant="h6" sx={{ fontWeight: 800 }}>{selectedCompany.company_name}</Typography>
+                                <Chip label={selectedCompany.is_active ? "Active" : "Inactive"} size="small" color="success" sx={{ height: 20, fontSize: 10 }} />
+                            </Box>
+                        </Box>
+
+                        {/* Basic Contact Info */}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <BusinessIcon fontSize="small" color="primary" /> Basic Information
+                        </Typography>
+                        <DetailItem label="Email" value={selectedCompany.email} />
+                        <DetailItem label="Mobile" value={selectedCompany.mobile} />
+                        <DetailItem label="Referral Name" value={selectedCompany.referral_name} />
+
+                        <Divider sx={{ my: 3 }} />
+
+                        {/* Address */}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocationIcon fontSize="small" color="primary" /> Location details
+                        </Typography>
+                        <DetailItem label="Full Address" value={selectedCompany.address} />
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}><DetailItem label="City" value={selectedCompany.city} /></Grid>
+                            <Grid item xs={6}><DetailItem label="State" value={selectedCompany.state} /></Grid>
+                            <Grid item xs={6}><DetailItem label="Pincode" value={selectedCompany.pincode} /></Grid>
+                        </Grid>
+
+                        <Divider sx={{ my: 3 }} />
+
+                        {/* Legal & Banking */}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <BankIcon fontSize="small" color="primary" /> Legal & Banking
+                        </Typography>
+                        <DetailItem label="GST Number" value={selectedCompany.gst_no} />
+                        <DetailItem label="PAN Number" value={selectedCompany.pan_no} />
+                        <DetailItem label="Bank Account" value={selectedCompany.bank_account_no} />
+                        <DetailItem label="IFSC Code" value={selectedCompany.bank_ifsc_code} />
+
+                        <Box sx={{ mt: 4, mb: 2 }}>
+                            <Button
+                                fullWidth
+                                variant="outlined"
+                                startIcon={<EditIcon />}
+                                onClick={() => handleEdit(selectedCompany.company_uuid)}
+                                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+                            >
+                                Edit Profile
+                            </Button>
+                        </Box>
+                    </Box>
+                )}
+            </Drawer>
         </Box>
     );
 };
