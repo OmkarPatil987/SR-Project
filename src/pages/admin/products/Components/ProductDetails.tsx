@@ -151,7 +151,7 @@ const ProductDetail: React.FC = () => {
                     <Button
                         variant="contained"
                         startIcon={<QrCode2 />}
-                        onClick={() => navigate(`/admin/create-qr?uuid=${uuid}`)}
+                        onClick={() => navigate(`/admin/create-qr`)}
                         sx={{
                             bgcolor: '#13ec83', color: '#0d1b15', fontWeight: 800, px: 4, height: 48, borderRadius: '12px',
                             textTransform: 'none', boxShadow: '0 8px 16px rgba(19, 236, 131, 0.2)', '&:hover': { bgcolor: '#10c970', transform: 'translateY(-2px)' }, transition: '0.2s'

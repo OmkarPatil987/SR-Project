@@ -12,9 +12,9 @@ import {
 
 // Icons
 import {
-    Add, Search, Visibility, QrCode, MoreVert, FileUploadOutlined,
-     BugReportOutlined, PsychologyOutlined, LayersOutlined,
-    Edit, Delete
+    Add, Search, Visibility, QrCode, MoreVert,
+    BugReportOutlined, PsychologyOutlined, LayersOutlined,
+    Edit, Delete, WaterDropOutlined
 } from "@mui/icons-material";
 
 import { RootState } from "../../../../redux/store";
@@ -91,7 +91,7 @@ const ProductList: React.FC = () => {
 
     const getCategoryIcon = (category: string) => {
         const cat = category?.toLowerCase();
-        if (cat?.includes('nutrient')) return <BugReportOutlined sx={{ color: '#19b369' }} />;
+        if (cat?.includes('fertilizer')) return <WaterDropOutlined sx={{ color: '#19b369' }} />;
         if (cat?.includes('pest')) return <BugReportOutlined sx={{ color: '#19b369' }} />;
         if (cat?.includes('seed')) return <PsychologyOutlined sx={{ color: '#19b369' }} />;
         return <LayersOutlined sx={{ color: '#19b369' }} />;
@@ -105,12 +105,6 @@ const ProductList: React.FC = () => {
                     <Typography variant="body2" sx={{ color: "#509574" }}>Manage and track QR compliance for your agricultural inventory.</Typography>
                 </Box>
                 <Stack direction="row" spacing={2}>
-                    {/* <Button
-                        startIcon={<FileUploadOutlined />}
-                        sx={{ bgcolor: '#e8f3ed', color: '#19b369', borderRadius: '0.75rem', px: 3, height: 44, fontWeight: 700, '&:hover': { bgcolor: '#d1e6dc' } }}
-                    >
-                        Import CSV
-                    </Button> */}
                     <Button
                         onClick={handleCreateProduct}
                         variant="contained"
@@ -141,7 +135,7 @@ const ProductList: React.FC = () => {
 
                         <TextField
                             size="small"
-                            placeholder="Search products..."
+                            placeholder="Search by name or code..."
                             value={payload.search}
                             onChange={(e) => setPayload(p => ({ ...p, search: e.target.value, offset: 0 }))}
                             InputProps={{
@@ -156,10 +150,9 @@ const ProductList: React.FC = () => {
                     <Table>
                         <TableHead sx={{ bgcolor: '#f8fbfa' }}>
                             <TableRow>
-                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0e1b15', textTransform: 'uppercase', py: 2 }}>Product Name</TableCell>
-                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0e1b15', textTransform: 'uppercase' }}>Company</TableCell>
-                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0e1b15', textTransform: 'uppercase' }}>Category</TableCell>
-                                <TableCell align="center" sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0e1b15', textTransform: 'uppercase' }}>QR Types</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0e1b15', textTransform: 'uppercase', py: 2 }}>Product Details</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0e1b15', textTransform: 'uppercase' }}>Manufacturer</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0e1b15', textTransform: 'uppercase' }}>Classification</TableCell>
                                 <TableCell sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#0e1b15', textTransform: 'uppercase' }}>Status</TableCell>
                                 <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#509574', textTransform: 'uppercase' }}>Actions</TableCell>
                             </TableRow>
@@ -167,7 +160,7 @@ const ProductList: React.FC = () => {
                         <TableBody>
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
-                                    <TableRow key={i}><TableCell colSpan={6}><Skeleton height={60} /></TableCell></TableRow>
+                                    <TableRow key={i}><TableCell colSpan={5}><Skeleton height={60} /></TableCell></TableRow>
                                 ))
                             ) : productList.length > 0 ? productList.map((row) => (
                                 <TableRow key={row.uuid} hover sx={{ '&:hover': { bgcolor: '#f0f9f4' }, transition: 'background-color 0.2s' }}>
@@ -178,29 +171,25 @@ const ProductList: React.FC = () => {
                                             </Box>
                                             <Box>
                                                 <Typography variant="body2" sx={{ color: '#0e1b15', fontWeight: 600 }}>{row.name}</Typography>
-                                                <Typography variant="caption" sx={{ color: '#509574' }}>SKU: {row.product_code || row.sku || 'N/A'}</Typography>
+                                                <Typography variant="caption" sx={{ color: '#509574', display: 'block' }}>Code: {row.product_code || 'N/A'}</Typography>
                                             </Box>
                                         </Stack>
                                     </TableCell>
-                                    <TableCell sx={{ color: '#509574', fontSize: '0.875rem' }}>{row.company_name || 'AgriShield'}</TableCell>
                                     <TableCell>
-                                        <Typography variant="body2" sx={{ color: '#509574' }}>{row.category}</Typography>
-                                        <Typography variant="caption" sx={{ color: 'rgba(80, 149, 116, 0.6)' }}>{row.sub_category}</Typography>
+                                        <Typography variant="body2" sx={{ color: '#509574', fontWeight: 500 }}>{row.company_name || 'Quantum'}</Typography>
                                     </TableCell>
-                                    <TableCell align="center">
-                                        <Box sx={{
-                                            bgcolor: row.is_dynamic ? '#e8f3ed' : '#f1f5f9',
-                                            color: row.is_dynamic ? '#19b369' : '#475569',
-                                            px: 1.5, py: 0.5, borderRadius: '100px', fontSize: '0.75rem', fontWeight: 700, display: 'inline-block'
-                                        }}>
-                                            {row.is_dynamic ? 'Dynamic' : 'Static'}
-                                        </Box>
+                                    <TableCell>
+                                        <Typography variant="body2" sx={{ color: '#0e1b15', fontWeight: 500 }}>{row.category}</Typography>
+                                        <Typography variant="caption" sx={{ color: 'rgba(80, 149, 116, 0.8)' }}>{row.sub_category}</Typography>
                                     </TableCell>
                                     <TableCell>
                                         <Stack direction="row" spacing={1} alignItems="center">
-                                            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: (row.status === 'active' || row.status === true) ? '#19b369' : '#94a3b8' }} />
-                                            <Typography variant="body2" sx={{ color: '#0e1b15', fontWeight: 500, textTransform: 'capitalize' }}>
-                                                {(row.status === 'active' || row.status === true) ? 'Active' : 'Inactive'}
+                                            <Box sx={{
+                                                width: 8, height: 8, borderRadius: '50%',
+                                                bgcolor: (row.status === true || row.status === 'active') ? '#19b369' : '#ef4444'
+                                            }} />
+                                            <Typography variant="body2" sx={{ color: '#0e1b15', fontWeight: 500 }}>
+                                                {(row.status === true || row.status === 'active') ? 'Active' : 'Inactive'}
                                             </Typography>
                                         </Stack>
                                     </TableCell>
@@ -221,12 +210,11 @@ const ProductList: React.FC = () => {
                                                     <Delete fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
-                                            <IconButton size="small" sx={{ color: '#509574' }}><MoreVert fontSize="small" /></IconButton>
                                         </Stack>
                                     </TableCell>
                                 </TableRow>
                             )) : (
-                                <TableRow><TableCell colSpan={6} align="center" sx={{ py: 8, color: '#509574' }}>No products found matching your criteria.</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 8, color: '#509574' }}>No products found matching your criteria.</TableCell></TableRow>
                             )}
                         </TableBody>
                     </Table>
