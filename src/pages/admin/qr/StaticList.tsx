@@ -18,7 +18,7 @@ import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import { resetRefresh } from "../../../redux/reducer/refreshSlice";
 import { FetchQRListService, FetchProductListService, FetchCompanyListService } from "../../../utils/services/product.service";
 
-const loadImageAsBase64 = async (url: string): Promise<string> => {
+export const loadImageAsBase64 = async (url: string): Promise<string> => {
     try {
         const response = await fetch(url);
         if (!response.ok) return "";
@@ -115,10 +115,7 @@ const StaticQRList: React.FC = () => {
             const base64 = await loadImageAsBase64(row.qr_path);
             if (base64) {
                 doc.addImage(base64, "PNG", 15, 10, 50, 50);
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(12);
-                doc.text(row.product_name || "Product", 40, 75, { align: "center" });
-                doc.setFontSize(10);
+          
                 doc.text(`Batch: ${row.product_code || 'N/A'}`, 40, 82, { align: "center" });
                 doc.save(`${row.product_name}_Static_Badge.pdf`);
                 dispatch(showSnackbar({ type: "success", message: "PDF Downloaded" }));
