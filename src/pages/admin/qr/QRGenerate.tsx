@@ -190,7 +190,7 @@ const QRForm: React.FC = () => {
                                     {[
                                         { id: 'dynamic', label: 'Dynamic', icon: <Sync /> },
                                         { id: 'static', label: 'Static', icon: <QrCode2 /> },
-                                        { id: 'bulk', label: 'Bulk', icon: <Layers /> }
+                                        // { id: 'bulk', label: 'Bulk', icon: <Layers /> }
                                     ].map((item) => (
                                         <Box
                                             key={item.id}
