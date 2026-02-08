@@ -20,14 +20,14 @@ export const ContactSupport: React.FC = () => {
                             <div className="bg-emerald-100 p-3 rounded-xl text-emerald-700"><Mail /></div>
                             <div>
                                 <p className="text-xs text-stone-400 font-bold uppercase">Email us</p>
-                                <p className="font-bold text-stone-800">support@apnaqr.com</p>
+                                <p className="font-bold text-stone-800">support@apnaqr.co.in</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-stone-100 shadow-sm">
                             <div className="bg-emerald-100 p-3 rounded-xl text-emerald-700"><Phone /></div>
                             <div>
                                 <p className="text-xs text-stone-400 font-bold uppercase">Call us</p>
-                                <p className="font-bold text-stone-800">+91 (800) 123-4567</p>
+                                <p className="font-bold text-stone-800">+91 9834521541, +91 9975937510</p>
                             </div>
                         </div>
                     </div>

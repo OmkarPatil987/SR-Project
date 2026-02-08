@@ -55,6 +55,15 @@ const StaticQr: React.FC = () => {
                         </p>
                     </div>
                 </div>
+
+                <div className="mt-10 flex justify-center">
+                    <a
+                        href="/faq/static"
+                        className="inline-flex items-center justify-center bg-emerald-700 text-white px-6 py-3 rounded-lg font-bold text-base hover:bg-emerald-800 transition-colors"
+                    >
+                        Have more questions? See Static FAQs
+                    </a>
+                </div>
             </div>
         </section>
     );

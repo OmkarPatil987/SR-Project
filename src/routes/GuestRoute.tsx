@@ -5,6 +5,8 @@ import { NAVIGATE_GUEST } from '../constant';
 import GuestLayout from '../layout/GuestLayout';
 import GuestProductDetail from '../pages/guest/product';
 import HomePageApnaQR from '../pages/guest/home';
+import StaticFaqPage from '../pages/guest/faq/StaticFaq';
+import DynamicFaqPage from '../pages/guest/faq/DynamicFaq';
 import { LegalPages } from '../pages/guest/home/footer/LeagalPage';
 import { ContactSupport } from '../pages/guest/home/footer/ContactSupport';
 import TermsOfService from '../pages/guest/home/footer/TermsOfService';
@@ -19,6 +21,8 @@ const GuestRoute = () => {
             <Routes>
                 <Route path='*' element={<GuestLayout> <Error404 /></GuestLayout>}></Route>
                 <Route path={NAVIGATE_GUEST.HOME} element={<GuestLayout><HomePageApnaQR /></GuestLayout>} />
+                <Route path={"/faq/static"} element={<GuestLayout><StaticFaqPage /></GuestLayout>} />
+                <Route path={"/faq/dynamic"} element={<GuestLayout><DynamicFaqPage /></GuestLayout>} />
                 <Route path={"/privacy-policy"} element={<GuestLayout><LegalPages /></GuestLayout>} />
                 <Route path={"/terms-of-service"} element={<GuestLayout><TermsOfService /></GuestLayout>} />
                 <Route path={"/fco-guidelines"} element={<GuestLayout><LegalPages/></GuestLayout>} />

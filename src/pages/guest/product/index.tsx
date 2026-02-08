@@ -1,24 +1,17 @@
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
     Box,
     Typography,
     Chip,
     Grid,
     Stack,
-    Divider,
     Paper,
-    useTheme,
     alpha,
     CircularProgress
 } from '@mui/material';
 import {
-    Verified,
     Security,
     Description,
-    Science,
-    Event,
-    EventBusy,
-    VerifiedUser,
     QrCodeScanner,
     Domain,
     History
@@ -85,7 +78,6 @@ interface ProductDetailsResponse {
 const GuestProductDetail: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();
     const dispatch = useDispatch();
-    const theme = useTheme();
     const [data, setData] = useState<ProductDetailsResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -123,6 +115,87 @@ const GuestProductDetail: React.FC = () => {
     }
 
     const { qr, product_master, product_detail, company } = data;
+    const qrType = (qr.qr_type || '').toLowerCase();
+    const isStatic = qrType.includes('static');
+    const isDynamic = qrType.includes('dynamic');
+
+    const gazetteDate = product_detail.gazette_notification_date
+        ? dayjs(product_detail.gazette_notification_date).format('MMM DD, YYYY')
+        : '-';
+
+    const primaryDetails = [
+        {
+            label: 'Gazette Notification No & Date',
+            value: `${product_detail.gazette_notification_number || '-'} | ${gazetteDate}`,
+        },
+        {
+            label: 'Title of Biostimulant',
+            value: product_detail.biostimulant_title || product_master.name || '-',
+        },
+        {
+            label: 'Composition of Biostimulant',
+            value: product_detail.biostimulant_composition || '-',
+        },
+        {
+            label: 'Crops',
+            value: product_detail.crops || '-',
+        },
+        {
+            label: 'Dosage',
+            value: product_detail.doses || '-',
+        },
+        {
+            label: 'Application method',
+            value: product_detail.application_method || '-',
+        },
+        {
+            label: 'Manufacturer details',
+            value: product_detail.manufacturer_details || '-',
+        },
+        ...(isDynamic
+            ? [
+                {
+                    label: 'Product Details - Description',
+                    value: product_master.description || '-',
+                },
+            ]
+            : []),
+        ...(isStatic
+            ? [
+                {
+                    label: 'Mfg Date',
+                    value: product_detail.manufacturing_date
+                        ? dayjs(product_detail.manufacturing_date).format('MMM DD, YYYY')
+                        : '-',
+                },
+                {
+                    label: 'Expire Date',
+                    value: product_detail.expiry_date
+                        ? dayjs(product_detail.expiry_date).format('MMM DD, YYYY')
+                        : '-',
+                },
+                {
+                    label: 'Batch No',
+                    value: product_detail.batch_name || '-',
+                },
+            ]
+            : []),
+    ];
+
+    const otherDetails = [
+        {
+            label: 'Category',
+            value: product_master.category || '-',
+        },
+        {
+            label: 'Sub-category',
+            value: product_master.sub_category || '-',
+        },
+        {
+            label: 'Product Code',
+            value: product_master.product_code || '-',
+        },
+    ];
 
     return (
         <Box sx={{bgcolor: '#f4f6f8', minHeight: '100vh' }}>
@@ -135,158 +208,102 @@ const GuestProductDetail: React.FC = () => {
                         sx={{ bgcolor: alpha('#13ae47', 0.1), color: '#13ae47', fontWeight: 800, fontSize: '11px', mb: 2, height: 28 }}
                     />
                     <Typography variant="h2" sx={{ fontWeight: 900, color: '#1a1a1a', letterSpacing: '-0.03em', mb: 1 }}>
-                        {product_master.name}
+                        {product_detail.biostimulant_title || product_master.name}
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ color: '#0f5132', fontWeight: 800, mb: 0.5 }}>
+                        {company.company_name}
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                        Verified Agricultural Product Details
+                        Secure product verification details
                     </Typography>
                 </Box>
 
                 <Grid container spacing={3}>
-                    {/* Left Side: Product Specs */}
-                    <Grid item xs={12} md={8}>
+                    <Grid item xs={12}>
                         <Stack spacing={3}>
                             <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
-                                <Stack direction="row" alignItems="center" spacing={1.5} mb={4}>
+                                <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
+                                    <Box sx={{ width: 32, height: 32, bgcolor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#13ae47' }}>
+                                        <Description fontSize="small" />
+                                    </Box>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>QR View Details</Typography>
+                                </Stack>
+                                <Box sx={{ border: '1px solid', borderColor: 'grey.200', borderRadius: 2, overflow: 'hidden' }}>
+                                    {primaryDetails.map((item, index) => (
+                                        <Box
+                                            key={item.label}
+                                            sx={{
+                                                display: 'grid',
+                                                gridTemplateColumns: { xs: '1fr', sm: '280px 1fr' },
+                                                gap: { xs: 0.5, sm: 2 },
+                                                px: 2.5,
+                                                py: 2,
+                                                bgcolor: index % 2 === 0 ? 'grey.50' : 'white',
+                                                borderBottom: index === primaryDetails.length - 1 ? 'none' : '1px solid',
+                                                borderColor: 'grey.200',
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
+                                                {item.label}
+                                            </Typography>
+                                            <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                                                {item.value}
+                                            </Typography>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </Paper>
+
+                            <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
+                                <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
+                                    <Box sx={{ width: 32, height: 32, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
+                                        <Domain fontSize="small" />
+                                    </Box>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>Manufacturer Information</Typography>
+                                </Stack>
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12} md={4}>
+                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Company Name</Typography>
+                                        <Typography variant="h6" sx={{ fontWeight: 800 }}>{company.company_name}</Typography>
+                                        <Stack direction="row" spacing={1} alignItems="center" mt={1} color="text.secondary">
+                                            <History sx={{ fontSize: 14 }} />
+                                            <Typography variant="caption">Authorized Manufacturer</Typography>
+                                        </Stack>
+                                    </Grid>
+                                    <Grid item xs={12} md={4}>
+                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Registration (GSTIN)</Typography>
+                                        <Box sx={{ px: 2, py: 1, bgcolor: alpha('#13ae47', 0.05), border: '1px solid', borderColor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'inline-block' }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 800, fontFamily: 'monospace', color: '#13ae47' }}>
+                                                {company.gst_no}
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={12} md={4}>
+                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Registered Address</Typography>
+                                        <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                                            {company.address}
+                                        </Typography>
+                                    </Grid>
+                                </Grid>
+                            </Paper>
+
+                            <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
+                                <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
                                     <Box sx={{ width: 32, height: 32, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
                                         <Description fontSize="small" />
                                     </Box>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>Product Specification</Typography>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>Other Details</Typography>
                                 </Stack>
-                                <Grid container spacing={4}>
-                                    <Grid item xs={6}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>Category</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700 }}>{product_master.category}</Typography>
-                                    </Grid>
-                                    <Grid item xs={6}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>Sub-category</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700 }}>{product_master.sub_category}</Typography>
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>Product Description</Typography>
-                                        <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6, mt: 0.5 }}>
-                                            {product_master.description}
-                                        </Typography>
-                                    </Grid>
-                                </Grid>
-                            </Paper>
-
-                            <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
-                                <Stack direction="row" alignItems="center" spacing={1.5} mb={4}>
-                                    <Box sx={{ width: 32, height: 32, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
-                                        <Science fontSize="small" />
-                                    </Box>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>Batch & Usage Guidance</Typography>
-                                </Stack>
-                                <Grid container spacing={4}>
-                                    <Grid item xs={12} sm={6}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>Batch Identifier</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 800, color: '#13ae47' }}>{product_detail.batch_name}</Typography>
-                                    </Grid>
-                                    <Grid item xs={12} sm={6}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>Recommended Dosage</Typography>
-                                        <Typography variant="body1" sx={{ fontWeight: 700 }}>{product_detail.doses}</Typography>
-                                    </Grid>
-                                    <Grid item xs={6}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>Manufacturing Date</Typography>
-                                        <Stack direction="row" spacing={1} alignItems="center">
-                                            <Event sx={{ fontSize: 18, color: 'text.disabled' }} />
-                                            <Typography variant="body1" sx={{ fontWeight: 700 }}>{dayjs(product_detail.manufacturing_date).format('MMM DD, YYYY')}</Typography>
-                                        </Stack>
-                                    </Grid>
-                                    <Grid item xs={6}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>Expiration Date</Typography>
-                                        <Stack direction="row" spacing={1} alignItems="center">
-                                            <EventBusy sx={{ fontSize: 18, color: 'text.disabled' }} />
-                                            <Typography variant="body1" sx={{ fontWeight: 700 }}>{dayjs(product_detail.expiry_date).format('MMM DD, YYYY')}</Typography>
-                                        </Stack>
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1.5, display: 'block' }}>Suitable For Following Crops</Typography>
-                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                            {product_detail.crops.split(',').map((crop) => (
-                                                <Chip key={crop} label={crop.trim()} variant="outlined" size="small" sx={{ borderRadius: '50px', fontWeight: 600, px: 1 }} />
-                                            ))}
-                                        </Box>
-                                    </Grid>
+                                <Grid container spacing={2}>
+                                    {otherDetails.map((item) => (
+                                        <Grid item xs={12} md={4} key={item.label}>
+                                            <Typography variant="caption" color="text.secondary">{item.label}</Typography>
+                                            <Typography variant="body2" fontWeight={800}>{item.value}</Typography>
+                                        </Grid>
+                                    ))}
                                 </Grid>
                             </Paper>
                         </Stack>
-                    </Grid>
-
-                    {/* Right Side Sidebar */}
-                    <Grid item xs={12} md={4}>
-                        <Stack spacing={3}>
-                            {/* Compliance Card */}
-                            <Paper elevation={0} sx={{ p: 4, textAlign: 'center', bgcolor: alpha('#13ae47', 0.05), border: '1px solid', borderColor: alpha('#13ae47', 0.2), borderRadius: 4 }}>
-                                <VerifiedUser sx={{ fontSize: 48, color: '#13ae47', mb: 2 }} />
-                                <Typography variant="subtitle2" sx={{ fontWeight: 800, textTransform: 'uppercase', mb: 3 }}>Compliance Status</Typography>
-                                <Stack spacing={2} textAlign="left">
-                                    <Box sx={{ bgcolor: 'white', p: 1.5, borderRadius: 2, border: '1px solid', borderColor: alpha('#13ae47', 0.1) }}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', display: 'block' }}>Gazette ID</Typography>
-                                        <Typography variant="body2" sx={{ fontWeight: 800 }}>{product_detail.gazette_notification_number}</Typography>
-                                    </Box>
-                                    <Box sx={{ bgcolor: 'white', p: 1.5, borderRadius: 2, border: '1px solid', borderColor: alpha('#13ae47', 0.1) }}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', display: 'block' }}>Approval Date</Typography>
-                                        <Typography variant="body2" sx={{ fontWeight: 800 }}>{dayjs(product_detail.gazette_notification_date).format('MMMM DD, YYYY')}</Typography>
-                                    </Box>
-                                </Stack>
-                            </Paper>
-
-                            {/* Verification Metadata */}
-                            <Paper variant="outlined" sx={{ p: 3, borderRadius: 4 }}>
-                                <Stack direction="row" spacing={1} alignItems="center" mb={3} color="text.disabled">
-                                    <QrCodeScanner fontSize="small" />
-                                    <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase' }}>Verification Details</Typography>
-                                </Stack>
-                                <Stack spacing={2}>
-                                    <Box display="flex" justifyContent="space-between">
-                                        <Typography variant="caption" color="text.secondary">Code Type</Typography>
-                                        <Typography variant="caption" fontWeight={800}>Secure {qr.qr_type}</Typography>
-                                    </Box>
-                                    <Box display="flex" justifyContent="space-between">
-                                        <Typography variant="caption" color="text.secondary">Verification Date</Typography>
-                                        <Typography variant="caption" fontWeight={800}>{dayjs().format('MMM DD, YYYY')}</Typography>
-                                    </Box>
-                                </Stack>
-                            </Paper>
-                        </Stack>
-                    </Grid>
-
-                    {/* Manufacturer Info (Full Width) */}
-                    <Grid item xs={12}>
-                        <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
-                            <Stack direction="row" alignItems="center" spacing={1.5} mb={4}>
-                                <Box sx={{ width: 32, height: 32, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
-                                    <Domain fontSize="small" />
-                                </Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>Manufacturer Information</Typography>
-                            </Stack>
-                            <Grid container spacing={4}>
-                                <Grid item xs={12} md={4}>
-                                    <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Company Name</Typography>
-                                    <Typography variant="h6" sx={{ fontWeight: 800 }}>{company.company_name}</Typography>
-                                    <Stack direction="row" spacing={1} alignItems="center" mt={1} color="text.secondary">
-                                        <History sx={{ fontSize: 14 }} />
-                                        <Typography variant="caption">Authorized Manufacturer</Typography>
-                                    </Stack>
-                                </Grid>
-                                <Grid item xs={12} md={4}>
-                                    <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Registration (GSTIN)</Typography>
-                                    <Box sx={{ px: 2, py: 1, bgcolor: alpha('#13ae47', 0.05), border: '1px solid', borderColor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'inline-block' }}>
-                                        <Typography variant="body2" sx={{ fontWeight: 800, fontFamily: 'monospace', color: '#13ae47' }}>
-                                            {company.gst_no}
-                                        </Typography>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={12} md={4}>
-                                    <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Registered Address</Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                                        {company.address}
-                                    </Typography>
-                                </Grid>
-                            </Grid>
-                        </Paper>
                     </Grid>
                 </Grid>
 

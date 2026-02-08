@@ -1,14 +1,13 @@
 import React from 'react';
-import { Check, X, RefreshCw, Lock, Zap, FileText } from 'lucide-react';
+import { Check, RefreshCw, Lock, Zap, FileText, X } from 'lucide-react';
 
 const QRComparison: React.FC = () => {
     const comparisonData = [
-        { feature: 'Data Type', static: 'Fixed information', dynamic: 'Changeable information', icon: <FileText size={18} /> },
-        { feature: 'Editable After Creation', static: false, dynamic: true, icon: <RefreshCw size={18} /> },
-        { feature: 'Label Reprinting', static: 'Required on every change', dynamic: 'Never required', icon: <Zap size={18} /> },
-        { feature: 'Content Update Method', static: 'Not possible', dynamic: 'Online dashboard', icon: <Lock size={18} /> },
-        { feature: 'Real-Time Updates', static: false, dynamic: true, icon: <Zap size={18} /> },
-        { feature: 'Best For', static: 'Fixed data products', dynamic: 'Growing brands', icon: <Check size={18} /> },
+        { feature: 'Use Case', static: 'Fixed information', dynamic: 'Future updates', icon: <FileText size={18} /> },
+        { feature: 'Data Editability', static: 'Not editable', dynamic: 'Editable anytime', icon: <RefreshCw size={18} /> },
+        { feature: 'QR Lifespan', static: 'New QR for changes', dynamic: 'Same QR for years', icon: <Zap size={18} /> },
+        { feature: 'History & Versions', static: 'Version history maintained', dynamic: 'Updates tracked online', icon: <Lock size={18} /> },
+        { feature: 'Best For', static: 'Fixed data labels', dynamic: 'Ongoing updates', icon: <Check size={18} /> },
     ];
 
     return (
@@ -57,10 +56,10 @@ const QRComparison: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 bg-stone-900 text-white">
                     <div className="p-6 font-bold uppercase text-xs tracking-widest flex items-center">Typical Use Cases</div>
                     <div className="p-6 text-sm text-stone-300 border-r border-stone-700">
-                        MFG Date, Expiry, Batch Number, Lot Identification.
+                        Fixed product info, MFG Date, Expiry Date, Batch Number.
                     </div>
                     <div className="p-6 text-sm text-emerald-200 bg-emerald-900/50">
-                        Product info, Marketing links, Lab certificates, and Real-time updates.
+                        Product updates, customer support, long-term labels.
                     </div>
                 </div>
             </div>

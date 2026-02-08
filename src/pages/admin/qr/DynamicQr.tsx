@@ -8,13 +8,13 @@ import {
     TableCell, TableContainer, TableHead, TableRow, Tooltip,
     Stack, TablePagination, Skeleton, Typography, Avatar,
     Switch, CircularProgress, MenuItem, Select, FormControl,
-    InputLabel, Dialog, DialogContent, DialogTitle, Divider
+    InputLabel, Dialog, DialogContent, DialogTitle, Divider, Menu
 } from "@mui/material";
 
 // Icons
 import {
     Add, Edit, FileDownload, Visibility, ContentCopy,
-    Business, Inventory2, RestartAlt, QrCode2, Close
+    Business, Inventory2, RestartAlt, QrCode2, Close, MoreVert
 } from "@mui/icons-material";
 
 import { jsPDF } from "jspdf";
@@ -53,6 +53,8 @@ const DynamicQRList: React.FC = () => {
     // Popup State
     const [previewOpen, setPreviewOpen] = useState(false);
     const [selectedQR, setSelectedQR] = useState<any>(null);
+    const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+    const menuOpen = Boolean(menuAnchorEl);
 
     const [payload, setPayload] = useState({
         offset: 0,
@@ -107,7 +109,12 @@ const DynamicQRList: React.FC = () => {
     const handleClosePreview = () => {
         setPreviewOpen(false);
         setSelectedQR(null);
+        setMenuAnchorEl(null);
     };
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+        setMenuAnchorEl(event.currentTarget);
+    };
+    const handleMenuClose = () => setMenuAnchorEl(null);
 
     const handleCopyLink = (qrUuid: string) => {
         const publicUrl = `${window.location.origin}/p/${qrUuid}`;
@@ -253,7 +260,7 @@ const DynamicQRList: React.FC = () => {
                                                     </IconButton>
                                                 </Tooltip>
                                                 <Tooltip title="Edit">
-                                                    <IconButton size="small" onClick={() => navigate(`/admin/create-qr?uuid=${row.product_master_uuid}&detail_uuid=${row.qr_uuid}`)}>
+                                                    <IconButton size="small" onClick={() => navigate(`/admin/create-qr?qr_uuid=${row.qr_uuid}&type=dynamic`)}>
                                                         <Edit fontSize="small" />
                                                     </IconButton>
                                                 </Tooltip>
@@ -288,7 +295,12 @@ const DynamicQRList: React.FC = () => {
             >
                 <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 3, px: 3 }}>
                     <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a' }}>QR Preview</Typography>
-                    <IconButton onClick={handleClosePreview} size="small" sx={{ bgcolor: '#f1f5f9' }}><Close fontSize="small" /></IconButton>
+                    <Stack direction="row" spacing={1}>
+                        <IconButton onClick={handleMenuOpen} size="small" sx={{ bgcolor: '#f1f5f9' }}>
+                            <MoreVert fontSize="small" />
+                        </IconButton>
+                        <IconButton onClick={handleClosePreview} size="small" sx={{ bgcolor: '#f1f5f9' }}><Close fontSize="small" /></IconButton>
+                    </Stack>
                 </DialogTitle>
                 <DialogContent sx={{ p: 4 }}>
                     {selectedQR && (
@@ -307,6 +319,24 @@ const DynamicQRList: React.FC = () => {
                     )}
                 </DialogContent>
             </Dialog>
+            <Menu
+                anchorEl={menuAnchorEl}
+                open={menuOpen}
+                onClose={handleMenuClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <MenuItem
+                    onClick={() => {
+                        handleMenuClose();
+                        if (selectedQR?.qr_uuid) {
+                            navigate(`/admin/create-qr?qr_uuid=${selectedQR.qr_uuid}&type=dynamic`);
+                        }
+                    }}
+                >
+                    Edit QR
+                </MenuItem>
+            </Menu>
         </Box>
     );
 };

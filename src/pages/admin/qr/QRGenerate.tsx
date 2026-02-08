@@ -43,13 +43,25 @@ interface FormValues {
 
 const qrValidationSchema = Yup.object().shape({
     product_master_uuid: Yup.string().required("Product selection is required"),
-    batch_name: Yup.string().required("Batch name/number is required"),
     company_name: Yup.string().required("Company name is required"),
-    manufacturing_date: Yup.date().nullable().required("Mfg Date is required"),
-    expiry_date: Yup.date().nullable().min(Yup.ref('manufacturing_date'), "Expiry must be after Mfg Date").required("Expiry Date is required"),
     gazette_notification_number: Yup.string().required("Gazette No. is required"),
     gazette_notification_date: Yup.date().nullable().required("Gazette Date is required"),
     type: Yup.string().required("QR Type is required"),
+    batch_name: Yup.string().when('type', {
+        is: 'static',
+        then: (schema) => schema.required("Batch name/number is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
+    manufacturing_date: Yup.date().nullable().when('type', {
+        is: 'static',
+        then: (schema) => schema.required("Mfg Date is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
+    expiry_date: Yup.date().nullable().when('type', {
+        is: 'static',
+        then: (schema) => schema.min(Yup.ref('manufacturing_date'), "Expiry must be after Mfg Date").required("Expiry Date is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 });
 
 const QRForm: React.FC = () => {
@@ -58,8 +70,9 @@ const QRForm: React.FC = () => {
     const dispatch = useDispatch();
 
     const uuid = searchParams.get("uuid");
+    const qrUuidParam = searchParams.get("qr_uuid") || searchParams.get("detail_uuid");
     const urlType = searchParams.get("type");
-    const isEdit = Boolean(uuid);
+    const isEdit = Boolean(qrUuidParam || uuid);
     const initialType = (urlType === "dynamic" || urlType === "static" || urlType === "bulk") ? urlType : "static";
 
     const [initialValues, setInitialValues] = useState<FormValues>({
@@ -99,9 +112,9 @@ const QRForm: React.FC = () => {
                 const { code, data } = await FetchProductListService({ offset: 0, limit: 1000 });
                 if (code === 200 && data?.data) setProducts(data.data);
 
-                if (isEdit && uuid) {
+                if (isEdit && (qrUuidParam || uuid)) {
                     setLoading(true);
-                    const res = await FetchQRDetailsService({ qr_uuid: uuid });
+                    const res = await FetchQRDetailsService({ qr_uuid: qrUuidParam || uuid });
                     if (res.code === 200 && res.data) {
                         // MAPPING BASED ON YOUR PROVIDED JSON STRUCTURE
                         const detail = res.data.product_detail;
@@ -134,10 +147,11 @@ const QRForm: React.FC = () => {
         const payload = {
             ...values,
             gazette_notification_date: values.gazette_notification_date?.format('YYYY-MM-DD'),
-            manufacturing_date: values.manufacturing_date?.format('YYYY-MM-DD'),
-            expiry_date: values.expiry_date?.format('YYYY-MM-DD'),
+            manufacturing_date: values.type === 'static' ? values.manufacturing_date?.format('YYYY-MM-DD') : null,
+            expiry_date: values.type === 'static' ? values.expiry_date?.format('YYYY-MM-DD') : null,
+            batch_name: values.type === 'static' ? values.batch_name : "",
         };
-        const response = isEdit ? await UpdateQRService({ ...payload, qr_uuid: uuid }) : await StoreQRService(payload);
+        const response = isEdit ? await UpdateQRService({ ...payload, qr_uuid: qrUuidParam || uuid }) : await StoreQRService(payload);
 
         if (response.code === 200) {
             dispatch(showSnackbar({ type: "success", message: "QR Processed Successfully" }));
@@ -194,12 +208,14 @@ const QRForm: React.FC = () => {
                                     ].map((item) => (
                                         <Box
                                             key={item.id}
-                                            onClick={() => setFieldValue('type', item.id)}
+                                            onClick={() => !isEdit && setFieldValue('type', item.id)}
                                             sx={{
-                                                flex: 1, cursor: 'pointer', height: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '20px',
+                                                flex: 1, cursor: isEdit ? 'not-allowed' : 'pointer', height: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '20px',
                                                 border: values.type === item.id ? '2px solid #06f957' : '1px solid #e0e0e0',
                                                 bgcolor: values.type === item.id ? 'rgba(6, 249, 87, 0.05)' : '#fff',
-                                                transition: 'all 0.2s ease', '&:hover': { borderColor: '#06f957' }
+                                                transition: 'all 0.2s ease',
+                                                opacity: isEdit ? 0.7 : 1,
+                                                '&:hover': { borderColor: isEdit ? '#e0e0e0' : '#06f957' }
                                             }}
                                         >
                                             <Box sx={{ color: values.type === item.id ? '#0f2316' : '#999', mb: 0.5 }}>
@@ -250,33 +266,37 @@ const QRForm: React.FC = () => {
                                                 sx={inputStyles}
                                             />
                                         </Grid>
-                                        <Grid item xs={12}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Batch Name / Number</Typography>
-                                            <TextField
-                                                fullWidth name="batch_name"
-                                                placeholder="e.g. BT-2024-XP-001"
-                                                value={values.batch_name} onChange={handleChange}
-                                                error={touched.batch_name && !!errors.batch_name}
-                                                helperText={touched.batch_name && errors.batch_name}
-                                                sx={inputStyles}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Manufacturing Date</Typography>
-                                            <DatePicker
-                                                value={values.manufacturing_date}
-                                                onChange={(val) => setFieldValue("manufacturing_date", val)}
-                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.manufacturing_date && !!errors.manufacturing_date, helperText: touched.manufacturing_date && (errors.manufacturing_date as string) } }}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Expiry Date</Typography>
-                                            <DatePicker
-                                                value={values.expiry_date}
-                                                onChange={(val) => setFieldValue("expiry_date", val)}
-                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.expiry_date && !!errors.expiry_date, helperText: touched.expiry_date && (errors.expiry_date as string) } }}
-                                            />
-                                        </Grid>
+                                        {values.type === "static" && (
+                                            <>
+                                                <Grid item xs={12}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Batch Name / Number</Typography>
+                                                    <TextField
+                                                        fullWidth name="batch_name"
+                                                        placeholder="e.g. BT-2024-XP-001"
+                                                        value={values.batch_name} onChange={handleChange}
+                                                        error={touched.batch_name && !!errors.batch_name}
+                                                        helperText={touched.batch_name && errors.batch_name}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Manufacturing Date</Typography>
+                                                    <DatePicker
+                                                        value={values.manufacturing_date}
+                                                        onChange={(val) => setFieldValue("manufacturing_date", val)}
+                                                        slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.manufacturing_date && !!errors.manufacturing_date, helperText: touched.manufacturing_date && (errors.manufacturing_date as string) } }}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Expiry Date</Typography>
+                                                    <DatePicker
+                                                        value={values.expiry_date}
+                                                        onChange={(val) => setFieldValue("expiry_date", val)}
+                                                        slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.expiry_date && !!errors.expiry_date, helperText: touched.expiry_date && (errors.expiry_date as string) } }}
+                                                    />
+                                                </Grid>
+                                            </>
+                                        )}
                                         <Grid item xs={12}>
                                             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Manufacturer Details</Typography>
                                             <TextField

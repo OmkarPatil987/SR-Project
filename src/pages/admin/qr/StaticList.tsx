@@ -9,7 +9,7 @@ import {
     InputLabel, Dialog, DialogContent, DialogTitle, Divider
 } from "@mui/material";
 import {
-    Add, Edit, FileDownload, Visibility, ContentCopy,
+    Add, FileDownload, Visibility, ContentCopy,
     Business, Inventory2, RestartAlt, QrCode2, Close
 } from "@mui/icons-material";
 import { jsPDF } from "jspdf";
@@ -238,9 +238,6 @@ const StaticQRList: React.FC = () => {
                                                     <IconButton size="small" onClick={() => handleDownloadPDF(row)} disabled={downloadingId === row.detail_uuid}>
                                                         {downloadingId === row.detail_uuid ? <CircularProgress size={18} /> : <FileDownload fontSize="small" />}
                                                     </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Edit">
-                                                    <IconButton size="small" onClick={() => navigate(`/admin/create-qr?uuid=${row.product_master_uuid}&detail_uuid=${row.qr_uuid}&type=static`)}><Edit fontSize="small" /></IconButton>
                                                 </Tooltip>
                                             </Stack>
                                         </TableCell>

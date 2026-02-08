@@ -81,8 +81,18 @@ const DynamicQr: React.FC = () => {
                                 </li>
                             ))}
                         </ul>
+
                     </div>
 
+                </div>
+
+                <div className="mt-12 flex justify-center">
+                    <a
+                        href="/faq/dynamic"
+                        className="inline-flex items-center justify-center bg-emerald-700 text-white px-6 py-3 rounded-lg font-bold text-base hover:bg-emerald-800 transition-colors"
+                    >
+                        Have more questions? See Dynamic FAQs
+                    </a>
                 </div>
             </div>
         </section>

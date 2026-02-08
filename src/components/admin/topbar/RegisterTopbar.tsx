@@ -6,6 +6,7 @@ const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -19,6 +20,20 @@ const Navbar: React.FC = () => {
         { name: 'Dynamic QR', href: '#dynamic-qr' },
         { name: 'Benefits', href: '#benefits' },
     ];
+
+    const isHome = location.pathname === '/home' || location.pathname === '/';
+    const handleAnchorClick = (hash: string) => {
+        if (isHome) {
+            const target = document.querySelector(hash);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            window.location.hash = hash;
+            return;
+        }
+        navigate(`/home${hash}`);
+    };
 
     return (
         /* FIXED: Changed to solid emerald-700 background. 
@@ -45,14 +60,13 @@ const Navbar: React.FC = () => {
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-1">
                         {navLinks.map((link) => (
-                            <a
+                            <button
                                 key={link.name}
-                                href={link.href}
-                                /* Changed text to white with an emerald hover effect */
+                                onClick={() => handleAnchorClick(link.href)}
                                 className="px-4 py-2 text-emerald-50 hover:text-white font-medium rounded-full hover:bg-white/10 transition-all duration-200"
                             >
                                 {link.name}
-                            </a>
+                            </button>
                         ))}
 
                         <div className="h-6 w-[1px] bg-emerald-600/50 mx-4" />
@@ -84,14 +98,16 @@ const Navbar: React.FC = () => {
                 }`}>
                 <div className="px-4 pt-2 pb-6 space-y-2 shadow-xl">
                     {navLinks.map((link) => (
-                        <a
+                        <button
                             key={link.name}
-                            href={link.href}
-                            onClick={() => setIsOpen(false)}
-                            className="block px-4 py-3 rounded-xl text-base font-medium text-emerald-50 hover:text-white hover:bg-white/10"
+                            onClick={() => {
+                                handleAnchorClick(link.href);
+                                setIsOpen(false);
+                            }}
+                            className="block w-full text-left px-4 py-3 rounded-xl text-base font-medium text-emerald-50 hover:text-white hover:bg-white/10"
                         >
                             {link.name}
-                        </a>
+                        </button>
                     ))}
                 </div>
             </div>

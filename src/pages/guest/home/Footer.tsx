@@ -38,6 +38,11 @@ const Footer: React.FC = () => {
                             The trusted platform for digital compliance in Indian Agriculture. Bridging the gap between authenticity and technology.
                         </p>
                         <p className="font-semibold text-white">Visit: www.apnaQR.co.in</p>
+                        <div className="mt-4 space-y-1 text-sm text-stone-300">
+                            <p className="font-semibold text-white">Company: NextGEN AI Services</p>
+                            <p>Email: support@apnaqr.co.in</p>
+                            <p>Phone: +91 9834521541, +91 9975937510</p>
+                        </div>
                     </div>
 
                     <div>
@@ -46,6 +51,8 @@ const Footer: React.FC = () => {
                             <li><a href="#compliance" className="hover:text-emerald-500 transition-colors">Compliance</a></li>
                             <li><a href="#static-qr" className="hover:text-emerald-500 transition-colors">Static QR</a></li>
                             <li><a href="#dynamic-qr" className="hover:text-emerald-500 transition-colors">Dynamic QR</a></li>
+                            <li><a href="/faq/static" className="hover:text-emerald-500 transition-colors">Static FAQs</a></li>
+                            <li><a href="/faq/dynamic" className="hover:text-emerald-500 transition-colors">Dynamic FAQs</a></li>
                             <li><a href="#benefits" className="hover:text-emerald-500 transition-colors">Pricing</a></li>
                         </ul>
                     </div>
