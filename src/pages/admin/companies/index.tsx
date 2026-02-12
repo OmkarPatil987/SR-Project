@@ -22,6 +22,7 @@ import {
 import { FetchCompanyListService, ApproveCompanyService } from '../../../utils/services/product.service';
 import { useDispatch } from 'react-redux';
 import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
+import useDebounce from '../../../hooks/useDebounce';
 
 const CompanyList = () => {
     const navigate = useNavigate();
@@ -33,6 +34,7 @@ const CompanyList = () => {
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const [totalCount, setTotalCount] = useState<number>(0);
     const [searchQuery, setSearchQuery] = useState<string>('');
+    const debouncedSearch = useDebounce(searchQuery, 500);
 
     // Status Dialog State
     const [statusDialogOpen, setStatusDialogOpen] = useState(false);
@@ -53,7 +55,9 @@ const CompanyList = () => {
         const payload = {
             offset: page * rowsPerPage,
             limit: rowsPerPage,
-            search: searchQuery,
+            search: debouncedSearch,
+            search_key: 'company_name',
+            search_value: debouncedSearch,
         };
         try {
             const { code, data } = await FetchCompanyListService(payload);
@@ -73,7 +77,11 @@ const CompanyList = () => {
 
     useEffect(() => {
         fetchCompanies();
-    }, [page, rowsPerPage]);
+    }, [page, rowsPerPage, debouncedSearch]);
+
+    useEffect(() => {
+        setPage(0);
+    }, [debouncedSearch]);
 
     const handleOpenStatusDialog = (company: any) => {
         setSelectedCompany(company);

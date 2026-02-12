@@ -12,6 +12,7 @@ import {
     Typography
 } from '@mui/material';
 import { Refresh } from '@mui/icons-material';
+import { alpha } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
@@ -258,35 +259,70 @@ const CompanyRegister = () => {
                         <Typography sx={{ fontSize: '13px', letterSpacing: '0.08em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
                             CAPTCHA VERIFICATION
                         </Typography>
-                        <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} md={6}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                    <Box sx={{ px: 2, py: 1.5, bgcolor: '#fff', border: '1px solid #e0e0e0', borderRadius: 1, minHeight: 42 }}>
-                                        <Typography sx={{ fontWeight: 700 }}>
-                                            {captchaToken?.question || (loadingCaptcha ? 'Loading captcha...' : 'No captcha loaded')}
-                                        </Typography>
+                        <Box
+                            sx={(theme) => ({
+                                p: 3,
+                                borderRadius: 2,
+                                border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                                bgcolor: alpha(theme.palette.primary.main, 0.06),
+                            })}
+                        >
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: { xs: 'column', md: 'row' },
+                                    alignItems: { xs: 'flex-start', md: 'center' },
+                                    justifyContent: 'space-between',
+                                    gap: 2,
+                                }}
+                            >
+                                <Box>
+                                    <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>Human Verification</Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Please solve this simple math problem.
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                                    <Box
+                                        sx={(theme) => ({
+                                            px: 2.5,
+                                            py: 1.2,
+                                            bgcolor: '#fff',
+                                            borderRadius: 2,
+                                            border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                                            color: 'primary.main',
+                                            fontWeight: 800,
+                                            minWidth: 120,
+                                            textAlign: 'center',
+                                        })}
+                                    >
+                                        {captchaToken?.question || (loadingCaptcha ? 'Loading...' : 'No captcha')}
                                     </Box>
-                                    <IconButton onClick={fetchCaptchaToken} disabled={loadingCaptcha} aria-label="Refresh Captcha" size="small" sx={{ border: '1px solid #ccc' }}>
+                                    <TextField
+                                        size="small"
+                                        label="Answer"
+                                        name="captcha_answer"
+                                        value={formik.values.captcha_answer}
+                                        onChange={(e) => {
+                                            const filtered = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                            formik.setFieldValue('captcha_answer', filtered);
+                                        }}
+                                        error={formik.touched.captcha_answer && !!formik.errors.captcha_answer}
+                                        helperText={formik.touched.captcha_answer && formik.errors.captcha_answer}
+                                        sx={{ width: 140, '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
+                                    />
+                                    <IconButton
+                                        onClick={fetchCaptchaToken}
+                                        disabled={loadingCaptcha}
+                                        aria-label="Refresh Captcha"
+                                        size="small"
+                                        sx={(theme) => ({ border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}` })}
+                                    >
                                         <Refresh fontSize="small" />
                                     </IconButton>
                                 </Box>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <TextField
-                                    fullWidth
-                                    size="small"
-                                    label="Captcha Answer *"
-                                    name="captcha_answer"
-                                    value={formik.values.captcha_answer}
-                                    onChange={(e) => {
-                                        const filtered = e.target.value.replace(/\D/g, '').slice(0, 4);
-                                        formik.setFieldValue('captcha_answer', filtered);
-                                    }}
-                                    error={formik.touched.captcha_answer && !!formik.errors.captcha_answer}
-                                    helperText={formik.touched.captcha_answer && formik.errors.captcha_answer}
-                                />
-                            </Grid>
-                        </Grid>
+                            </Box>
+                        </Box>
                     </Box>
 
                     <TextField
