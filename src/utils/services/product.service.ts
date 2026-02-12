@@ -1,6 +1,6 @@
 
 import ClientsAxios from '../client-axios';
-import { handlePostRequest } from './requestHandler';
+import { handleGetRequest, handlePostRequest } from './requestHandler';
 const { CMRF_NGO_ADMIN_SERVER } = ClientsAxios;
 
 
@@ -41,3 +41,10 @@ export const StoreCompanyService = (payload: any) => handlePostRequest<any>('v1/
 //UpdateCompanyService
 
 export const UpdateCompanyService = (payload: any) => handlePostRequest<any>('v1/company/update', payload, CMRF_NGO_ADMIN_SERVER);
+
+// Guest company registration + captcha
+export const GenerateCompanyCaptchaTokenService = (params: any) => handleGetRequest<any>('v1/generate-captcha-token', params, CMRF_NGO_ADMIN_SERVER);
+export const RegisterCompanyService = (payload: any) => handlePostRequest<any>('v1/company/register', payload, CMRF_NGO_ADMIN_SERVER);
+
+// Company approval/status update
+export const ApproveCompanyService = (payload: any) => handlePostRequest<any>('v1/company/approve', payload, CMRF_NGO_ADMIN_SERVER);

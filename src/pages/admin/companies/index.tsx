@@ -4,7 +4,7 @@ import {
     Box, Card, Table, TableBody, TableCell, TableContainer, TableHead,
     TableRow, TablePagination, TextField, Typography, Chip, IconButton,
     InputAdornment, Button, Avatar, Stack, Tooltip, Divider, Breadcrumbs,
-    Link, Skeleton, Drawer,
+    Link, Skeleton, Dialog, DialogTitle, DialogContent, Drawer,
     Grid
 } from '@mui/material';
 import {
@@ -16,9 +16,12 @@ import {
     Close as CloseIcon,
     Business as BusinessIcon,
     LocationOn as LocationIcon,
-    AccountBalance as BankIcon
+    AccountBalance as BankIcon,
+    VerifiedUser as VerifiedUserIcon
 } from '@mui/icons-material';
-import { FetchCompanyListService } from '../../../utils/services/product.service';
+import { FetchCompanyListService, ApproveCompanyService } from '../../../utils/services/product.service';
+import { useDispatch } from 'react-redux';
+import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
 
 const CompanyList = () => {
     const navigate = useNavigate();
@@ -31,9 +34,14 @@ const CompanyList = () => {
     const [totalCount, setTotalCount] = useState<number>(0);
     const [searchQuery, setSearchQuery] = useState<string>('');
 
-    // Drawer State
-    const [drawerOpen, setDrawerOpen] = useState(false);
+    // Status Dialog State
+    const [statusDialogOpen, setStatusDialogOpen] = useState(false);
     const [selectedCompany, setSelectedCompany] = useState<any>(null);
+    const [approvalRemark, setApprovalRemark] = useState('');
+    const [approvalLoading, setApprovalLoading] = useState(false);
+    const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
+    const [detailsCompany, setDetailsCompany] = useState<any>(null);
+    const dispatch = useDispatch();
 
     const inputStyles = {
         '& .MuiOutlinedInput-root': { bgcolor: '#f6f8f7', border: 'none', borderRadius: '0.75rem' },
@@ -67,13 +75,52 @@ const CompanyList = () => {
         fetchCompanies();
     }, [page, rowsPerPage]);
 
-    const handleViewDetails = (company: any) => {
+    const handleOpenStatusDialog = (company: any) => {
         setSelectedCompany(company);
-        setDrawerOpen(true);
+        setApprovalRemark('');
+        setStatusDialogOpen(true);
+    };
+
+    const handleCloseStatusDialog = () => {
+        setStatusDialogOpen(false);
+        setSelectedCompany(null);
+    };
+
+    const handleOpenDetails = (company: any) => {
+        setDetailsCompany(company);
+        setDetailsDrawerOpen(true);
+    };
+
+    const handleCloseDetails = () => {
+        setDetailsDrawerOpen(false);
+        setDetailsCompany(null);
     };
 
     const handleEdit = (uuid: string) => {
         navigate(`/admin/company/create?uuid=${uuid}`);
+    };
+
+    const handleApprovalUpdate = async (isApproved: 0 | 1) => {
+        if (!selectedCompany?.company_uuid) return;
+        if (!approvalRemark?.trim()) {
+            dispatch(showSnackbar({ type: 'error', message: 'Remark is required.' }));
+            return;
+        }
+        setApprovalLoading(true);
+        const payload = {
+            company_uuid: selectedCompany.company_uuid,
+            is_approved: isApproved,
+            remark: approvalRemark.trim(),
+        };
+        const { code, message } = await ApproveCompanyService(payload);
+        if (code === 200) {
+            dispatch(showSnackbar({ type: 'success', message: 'Company approval status updated.' }));
+            fetchCompanies();
+            handleCloseStatusDialog();
+        } else {
+            dispatch(showSnackbar({ type: 'error', message: message || 'Failed to update approval status.' }));
+        }
+        setApprovalLoading(false);
     };
 
     // Helper to render Detail Rows in Drawer
@@ -169,10 +216,15 @@ const CompanyList = () => {
                                             <Chip label={row.is_active ? "Active" : "Inactive"} size="small" color={row.is_active ? "success" : "default"} />
                                         </TableCell>
                                         <TableCell align="right">
-                                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                            <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center">
                                                 <Tooltip title="View Details">
-                                                    <IconButton size="small" onClick={() => handleViewDetails(row)} sx={{ color: '#4c9a74' }}>
+                                                    <IconButton size="small" onClick={() => handleOpenDetails(row)} sx={{ color: '#4c9a74' }}>
                                                         <Visibility fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Update Status">
+                                                    <IconButton size="small" onClick={() => handleOpenStatusDialog(row)} sx={{ color: '#0fbd69' }}>
+                                                        <VerifiedUserIcon fontSize="small" />
                                                     </IconButton>
                                                 </Tooltip>
                                                 <Tooltip title="Edit">
@@ -205,39 +257,71 @@ const CompanyList = () => {
             {/* Company Details Drawer */}
             <Drawer
                 anchor="right"
-                open={drawerOpen}
-                onClose={() => setDrawerOpen(false)}
-                PaperProps={{ sx: { width: { xs: '100%', sm: 600 }, p: 3, borderLeft: '1px solid #e7f3ed' } }}
+                open={detailsDrawerOpen}
+                onClose={handleCloseDetails}
+                PaperProps={{ sx: { width: { xs: '100%', sm: 720, lg: 860 }, p: 3, borderLeft: '1px solid #e7f3ed' } }}
             >
                 <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h5" sx={{ fontWeight: 900, color: '#0d1b15' }}>Company Profile</Typography>
-                    <IconButton onClick={() => setDrawerOpen(false)} size="small">
+                    <IconButton onClick={handleCloseDetails} size="small">
                         <CloseIcon />
                     </IconButton>
                 </Box>
 
                 <Divider sx={{ mb: 3 }} />
 
-                {selectedCompany && (
+                {detailsCompany && (
                     <Box sx={{ overflowY: 'auto' }}>
                         {/* Header Badge */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4, p: 2, bgcolor: '#f8fbfa', borderRadius: 3 }}>
-                            <Avatar variant="rounded" sx={{ width: 56, height: 56, bgcolor: '#0fbd69' }}>
-                                <BusinessIcon fontSize="large" />
-                            </Avatar>
-                            <Box>
-                                <Typography variant="h6" sx={{ fontWeight: 800 }}>{selectedCompany.company_name}</Typography>
-                                <Chip label={selectedCompany.is_active ? "Active" : "Inactive"} size="small" color="success" sx={{ height: 20, fontSize: 10 }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 4, p: 2, bgcolor: '#f8fbfa', borderRadius: 3 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Avatar variant="rounded" sx={{ width: 56, height: 56, bgcolor: '#0fbd69' }}>
+                                    <BusinessIcon fontSize="large" />
+                                </Avatar>
+                                <Box>
+                                    <Typography variant="h6" sx={{ fontWeight: 800 }}>{detailsCompany.company_name}</Typography>
+                                    <Stack direction="row" spacing={1} alignItems="center">
+                                        <Chip label={detailsCompany.is_active ? "Active" : "Inactive"} size="small" color={detailsCompany.is_active ? "success" : "default"} sx={{ height: 20, fontSize: 10 }} />
+                                        {detailsCompany.is_approved !== undefined && (
+                                            <Chip
+                                                label={detailsCompany.is_approved ? "Approved" : "Pending"}
+                                                size="small"
+                                                color={detailsCompany.is_approved ? "success" : "warning"}
+                                                sx={{ height: 20, fontSize: 10 }}
+                                            />
+                                        )}
+                                    </Stack>
+                                </Box>
                             </Box>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="center">
+                                <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="success"
+                                    onClick={() => handleOpenStatusDialog(detailsCompany)}
+                                    sx={{ textTransform: 'none', fontWeight: 700, minWidth: 110 }}
+                                >
+                                    Approve
+                                </Button>
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={() => handleOpenStatusDialog(detailsCompany)}
+                                    sx={{ textTransform: 'none', fontWeight: 700, minWidth: 110 }}
+                                >
+                                    Reject
+                                </Button>
+                            </Stack>
                         </Box>
 
                         {/* Basic Contact Info */}
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <BusinessIcon fontSize="small" color="primary" /> Basic Information
                         </Typography>
-                        <DetailItem label="Email" value={selectedCompany.email} />
-                        <DetailItem label="Mobile" value={selectedCompany.mobile} />
-                        <DetailItem label="Referral Name" value={selectedCompany.referral_name} />
+                        <DetailItem label="Email" value={detailsCompany.email} />
+                        <DetailItem label="Mobile" value={detailsCompany.mobile} />
+                        <DetailItem label="Referral Name" value={detailsCompany.referral_name} />
 
                         <Divider sx={{ my: 3 }} />
 
@@ -245,11 +329,11 @@ const CompanyList = () => {
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <LocationIcon fontSize="small" color="primary" /> Location details
                         </Typography>
-                        <DetailItem label="Full Address" value={selectedCompany.address} />
+                        <DetailItem label="Full Address" value={detailsCompany.address} />
                         <Grid container spacing={2}>
-                            <Grid item xs={6}><DetailItem label="City" value={selectedCompany.city} /></Grid>
-                            <Grid item xs={6}><DetailItem label="State" value={selectedCompany.state} /></Grid>
-                            <Grid item xs={6}><DetailItem label="Pincode" value={selectedCompany.pincode} /></Grid>
+                            <Grid item xs={6}><DetailItem label="City" value={detailsCompany.city} /></Grid>
+                            <Grid item xs={6}><DetailItem label="State" value={detailsCompany.state} /></Grid>
+                            <Grid item xs={6}><DetailItem label="Pincode" value={detailsCompany.pincode} /></Grid>
                         </Grid>
 
                         <Divider sx={{ my: 3 }} />
@@ -258,25 +342,83 @@ const CompanyList = () => {
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <BankIcon fontSize="small" color="primary" /> Legal & Banking
                         </Typography>
-                        <DetailItem label="GST Number" value={selectedCompany.gst_no} />
-                        <DetailItem label="PAN Number" value={selectedCompany.pan_no} />
-                        <DetailItem label="Bank Account" value={selectedCompany.bank_account_no} />
-                        <DetailItem label="IFSC Code" value={selectedCompany.bank_ifsc_code} />
+                        <DetailItem label="GST Number" value={detailsCompany.gst_no} />
+                        <DetailItem label="PAN Number" value={detailsCompany.pan_no} />
+                        <DetailItem label="Bank Account" value={detailsCompany.bank_account_no} />
+                        <DetailItem label="IFSC Code" value={detailsCompany.bank_ifsc_code} />
 
                         <Box sx={{ mt: 4, mb: 2 }}>
                             <Button
                                 fullWidth
                                 variant="outlined"
                                 startIcon={<EditIcon />}
-                                onClick={() => handleEdit(selectedCompany.company_uuid)}
+                                onClick={() => handleEdit(detailsCompany.company_uuid)}
                                 sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
                             >
                                 Edit Profile
                             </Button>
                         </Box>
+
                     </Box>
                 )}
             </Drawer>
+
+            {/* Status Update Dialog */}
+            <Dialog
+                open={statusDialogOpen}
+                onClose={handleCloseStatusDialog}
+                PaperProps={{ sx: { borderRadius: 3, width: '100%', maxWidth: 520 } }}
+            >
+            <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 2 }}>
+                <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 900, color: '#0d1b15' }}>Update Company Status</Typography>
+                    <Typography variant="caption" sx={{ color: '#4c9a74' }}>
+                        {selectedCompany?.company_name || 'Selected Company'}
+                    </Typography>
+                </Box>
+                <IconButton onClick={handleCloseStatusDialog} size="small">
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+                <DialogContent sx={{ pt: 2 }}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                label="Remark *"
+                                multiline
+                                rows={3}
+                                value={approvalRemark}
+                                onChange={(e) => setApprovalRemark(e.target.value)}
+                                sx={{ m: 1 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="flex-end">
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    disabled={approvalLoading}
+                                    onClick={() => handleApprovalUpdate(0)}
+                                    sx={{ textTransform: 'none', fontWeight: 700, minWidth: 140 }}
+                                >
+                                    Reject
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="success"
+                                    disabled={approvalLoading}
+                                    onClick={() => handleApprovalUpdate(1)}
+                                    sx={{ textTransform: 'none', fontWeight: 700, minWidth: 140 }}
+                                >
+                                    Approve
+                                </Button>
+                            </Stack>
+                        </Grid>
+                    </Grid>
+                </DialogContent>
+        </Dialog>
         </Box>
     );
 };

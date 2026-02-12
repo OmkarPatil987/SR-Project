@@ -48,5 +48,6 @@ export const UserTypeWisePagesConfig: Record<keyof typeof USER_TYPE, string[]> =
 
 export const NAVIGATE_GUEST = {
     HOME: "/home",
+    COMPANY_REGISTER: "/company/register",
 
 }
