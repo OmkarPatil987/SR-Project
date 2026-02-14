@@ -14,13 +14,12 @@ import {
     Minimize,
     LogOut,
     User,
-    LifeBuoy,
-    Settings
+    LifeBuoy
 } from 'lucide-react';
 
 import { RootState } from '../../../redux/store';
 import { useSettings } from '../../../providers/SettingsProvider';
-import { NAVIGATE_AUTH } from '../../../constant';
+import { NAVIGATE_ADMIN, NAVIGATE_AUTH } from '../../../constant';
 import useResponsive from '../../../hooks/useResponsive';
 import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
 
@@ -49,6 +48,8 @@ export default function AdminTopBar() {
     };
 
     const handleLogout = () => navigate(NAVIGATE_AUTH.LOGOUT_PAGE);
+    const userType = authUser?.userDetails?.user_type;
+    const isCompanyAdmin = userType === 'company_admin';
 
     const formatUserType = (userType?: string) => {
         if (!userType) return "Admin";
@@ -156,13 +157,20 @@ export default function AdminTopBar() {
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-                <MenuItem onClick={() => setAnchorEl(null)} sx={{ py: 1.5 }}>
-                    <User size={16} style={{ marginRight: '12px' }} /> Profile
-                </MenuItem>
-                <MenuItem onClick={() => setAnchorEl(null)} sx={{ py: 1.5 }}>
-                    <Settings size={16} style={{ marginRight: '12px' }} /> Settings
-                </MenuItem>
-                <Divider />
+                {isCompanyAdmin && (
+                    <>
+                        <MenuItem
+                            onClick={() => {
+                                setAnchorEl(null);
+                                navigate(NAVIGATE_ADMIN.PROFILE_PAGE);
+                            }}
+                            sx={{ py: 1.5 }}
+                        >
+                            <User size={16} style={{ marginRight: '12px' }} /> Profile
+                        </MenuItem>
+                        <Divider />
+                    </>
+                )}
                 <MenuItem onClick={handleLogout} sx={{ py: 1.5, color: 'error.main', fontWeight: 600 }}>
                     <LogOut size={16} style={{ marginRight: '12px' }} /> Logout
                 </MenuItem>

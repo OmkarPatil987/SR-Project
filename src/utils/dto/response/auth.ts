@@ -12,6 +12,7 @@ export interface LoginResponse {
 export interface UserDetails {
     id: number;
     uuid: string;
+    company_uuid?: string;
     name: string;
     email: string;
     mobile: string;

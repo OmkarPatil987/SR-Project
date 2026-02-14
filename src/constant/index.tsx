@@ -33,10 +33,12 @@ export const NAVIGATE_ADMIN = {
     ///campanies
     CAMPANIES: '/companies',
     CAMPANIES_CREATE: '/company/create',
+    PROFILE: '/profile',
     QR_STATIC: '/static-qr',
     QR_DYNAMIC: '/dynamic-qr',
     QR_CREATE: '/create-qr',
     get DASHBOARD_PAGE() { return `${NAVIGATE_MODULES.ADMIN}${this.DASHBAORD}`; },
+    get PROFILE_PAGE() { return `${NAVIGATE_MODULES.ADMIN}${this.PROFILE}`; },
   
 }
 

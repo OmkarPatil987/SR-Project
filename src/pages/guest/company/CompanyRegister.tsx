@@ -44,15 +44,31 @@ interface CompanyRegisterValues {
 const validationSchema = Yup.object().shape({
     company_name: Yup.string().required('Company name is required'),
     email: Yup.string().email('Invalid email').required('Email is required'),
-    mobile: Yup.string().nullable().notRequired(),
-    state: Yup.string().nullable().notRequired(),
-    city: Yup.string().nullable().notRequired(),
-    pincode: Yup.string().nullable().notRequired(),
-    address: Yup.string().nullable().notRequired(),
-    gst_no: Yup.string().nullable().notRequired(),
-    pan_no: Yup.string().nullable().notRequired(),
-    bank_account_no: Yup.string().nullable().notRequired(),
-    bank_ifsc_code: Yup.string().nullable().notRequired(),
+    mobile: Yup.string()
+        .matches(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number')
+        .required('Mobile number is required'),
+    state: Yup.string().required('State is required'),
+    city: Yup.string().required('City is required'),
+    pincode: Yup.string()
+        .matches(/^\d{6}$/, 'Enter a valid 6-digit pincode')
+        .required('Pincode is required'),
+    address: Yup.string().required('Address is required'),
+    gst_no: Yup.string()
+        .matches(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Enter a valid GST number')
+        .nullable()
+        .notRequired(),
+    pan_no: Yup.string()
+        .matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'Enter a valid PAN number')
+        .nullable()
+        .notRequired(),
+    bank_account_no: Yup.string()
+        .matches(/^\d{9,18}$/, 'Enter a valid bank account number')
+        .nullable()
+        .notRequired(),
+    bank_ifsc_code: Yup.string()
+        .matches(/^[A-Z]{4}0[A-Z0-9]{6}$/, 'Enter a valid IFSC code')
+        .nullable()
+        .notRequired(),
     referral_name: Yup.string().nullable().notRequired(),
     captcha_answer: Yup.string().required('Captcha answer is required'),
 });
@@ -184,13 +200,16 @@ const CompanyRegister = () => {
                                 <TextField
                                     fullWidth
                                     size="small"
-                                    label="Mobile Number"
+                                    label="Mobile Number *"
                                     name="mobile"
                                     value={formik.values.mobile}
                                     onChange={(e) => {
                                         const filtered = e.target.value.replace(/\D/g, '').slice(0, 10);
                                         formik.setFieldValue('mobile', filtered);
                                     }}
+                                    inputProps={{ inputMode: 'numeric' }}
+                                    error={formik.touched.mobile && !!formik.errors.mobile}
+                                    helperText={formik.touched.mobile && formik.errors.mobile}
                                 />
                             </Grid>
                         </Grid>
@@ -204,26 +223,58 @@ const CompanyRegister = () => {
                         </Typography>
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={4}>
-                                <TextField fullWidth size="small" label="State" name="state" value={formik.values.state} onChange={formik.handleChange} />
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                                <TextField fullWidth size="small" label="City" name="city" value={formik.values.city} onChange={formik.handleChange} />
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="State *"
+                                    name="state"
+                                    value={formik.values.state}
+                                    onChange={formik.handleChange}
+                                    error={formik.touched.state && !!formik.errors.state}
+                                    helperText={formik.touched.state && formik.errors.state}
+                                />
                             </Grid>
                             <Grid item xs={12} md={4}>
                                 <TextField
                                     fullWidth
                                     size="small"
-                                    label="Pincode"
+                                    label="City *"
+                                    name="city"
+                                    value={formik.values.city}
+                                    onChange={formik.handleChange}
+                                    error={formik.touched.city && !!formik.errors.city}
+                                    helperText={formik.touched.city && formik.errors.city}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="Pincode *"
                                     name="pincode"
                                     value={formik.values.pincode}
                                     onChange={(e) => {
                                         const filtered = e.target.value.replace(/\D/g, '').slice(0, 6);
                                         formik.setFieldValue('pincode', filtered);
                                     }}
+                                    inputProps={{ inputMode: 'numeric' }}
+                                    error={formik.touched.pincode && !!formik.errors.pincode}
+                                    helperText={formik.touched.pincode && formik.errors.pincode}
                                 />
                             </Grid>
                             <Grid item xs={12}>
-                                <TextField fullWidth size="small" multiline rows={3} label="Full Address" name="address" value={formik.values.address} onChange={formik.handleChange} />
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    multiline
+                                    rows={3}
+                                    label="Full Address *"
+                                    name="address"
+                                    value={formik.values.address}
+                                    onChange={formik.handleChange}
+                                    error={formik.touched.address && !!formik.errors.address}
+                                    helperText={formik.touched.address && formik.errors.address}
+                                />
                             </Grid>
                         </Grid>
                     </Box>
@@ -236,19 +287,68 @@ const CompanyRegister = () => {
                         </Typography>
                         <Grid container spacing={3}>
                             <Grid item xs={12} md={6}>
-                                <TextField fullWidth size="small" label="GST Number" name="gst_no" value={formik.values.gst_no} onChange={formik.handleChange} />
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="GST Number"
+                                    name="gst_no"
+                                    value={formik.values.gst_no}
+                                    onChange={(e) => formik.setFieldValue('gst_no', e.target.value.toUpperCase())}
+                                    error={formik.touched.gst_no && !!formik.errors.gst_no}
+                                    helperText={formik.touched.gst_no && formik.errors.gst_no}
+                                />
                             </Grid>
                             <Grid item xs={12} md={6}>
-                                <TextField fullWidth size="small" label="PAN Number" name="pan_no" value={formik.values.pan_no} onChange={formik.handleChange} />
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="PAN Number"
+                                    name="pan_no"
+                                    value={formik.values.pan_no}
+                                    onChange={(e) => formik.setFieldValue('pan_no', e.target.value.toUpperCase())}
+                                    error={formik.touched.pan_no && !!formik.errors.pan_no}
+                                    helperText={formik.touched.pan_no && formik.errors.pan_no}
+                                />
                             </Grid>
                             <Grid item xs={12} md={6}>
-                                <TextField fullWidth size="small" label="Bank Account No" name="bank_account_no" value={formik.values.bank_account_no} onChange={formik.handleChange} />
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="Bank Account No"
+                                    name="bank_account_no"
+                                    value={formik.values.bank_account_no}
+                                    onChange={(e) => {
+                                        const filtered = e.target.value.replace(/\D/g, '').slice(0, 18);
+                                        formik.setFieldValue('bank_account_no', filtered);
+                                    }}
+                                    inputProps={{ inputMode: 'numeric' }}
+                                    error={formik.touched.bank_account_no && !!formik.errors.bank_account_no}
+                                    helperText={formik.touched.bank_account_no && formik.errors.bank_account_no}
+                                />
                             </Grid>
                             <Grid item xs={12} md={6}>
-                                <TextField fullWidth size="small" label="IFSC Code" name="bank_ifsc_code" value={formik.values.bank_ifsc_code} onChange={formik.handleChange} />
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="IFSC Code"
+                                    name="bank_ifsc_code"
+                                    value={formik.values.bank_ifsc_code}
+                                    onChange={(e) => formik.setFieldValue('bank_ifsc_code', e.target.value.toUpperCase())}
+                                    error={formik.touched.bank_ifsc_code && !!formik.errors.bank_ifsc_code}
+                                    helperText={formik.touched.bank_ifsc_code && formik.errors.bank_ifsc_code}
+                                />
                             </Grid>
                             <Grid item xs={12} md={6}>
-                                <TextField fullWidth size="small" label="Referral Name" name="referral_name" value={formik.values.referral_name} onChange={formik.handleChange} />
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="Referral Name"
+                                    name="referral_name"
+                                    value={formik.values.referral_name}
+                                    onChange={formik.handleChange}
+                                    error={formik.touched.referral_name && !!formik.errors.referral_name}
+                                    helperText={formik.touched.referral_name && formik.errors.referral_name}
+                                />
                             </Grid>
                         </Grid>
                     </Box>
