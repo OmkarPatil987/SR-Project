@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="text-center md:text-left">
                         <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                            Make Your Agri Products Government-Compliant
+                            Make Your Biostimulant Products Government-Compliant
                         </h2>
                         <p className="text-emerald-50">
                             Start generating Static & Dynamic QR codes today.

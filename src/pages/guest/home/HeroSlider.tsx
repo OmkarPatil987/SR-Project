@@ -3,7 +3,7 @@ import { CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const HERO_SLIDES = [
-    "/images/home/b5.webp",
+    "/images/home/b7.jpg",
     "/images/home/b4.webp",
 ];
 
@@ -29,7 +29,7 @@ export const HeroSlider = () => {
                 </div>
 
                 <h1 className="text-3xl font-extrabold text-stone-900 leading-tight mb-4">
-                    apnaQR – QR Code Platform for <span className="text-emerald-600">Agri Products</span>
+                    apnaQR – QR Code Platform for <span className="text-emerald-600">Biostimulant Products</span>
                 </h1>
 
                 <p className="text-lg font-semibold text-stone-700 mb-1">

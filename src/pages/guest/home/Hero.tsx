@@ -19,7 +19,7 @@ const Hero: React.FC = () => {
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-stone-900 leading-tight mb-6">
                             Government-Compliant <br />
                             <span className="text-brand-green">QR Code Platform</span> <br />
-                            for Agri Products
+                            for Biostimulants
                         </h1>
 
                         <p className="text-lg md:text-xl text-stone-600 mb-4 font-medium">
@@ -44,7 +44,7 @@ const Hero: React.FC = () => {
 
                     <div className="lg:col-span-6 mt-12 lg:mt-0 relative">
                         <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
-                            {/* Placeholder for Agri Product/Farmer Interaction */}
+                            {/* Placeholder for Biostimulant Product/Farmer Interaction */}
                             <img
                                 src="https://picsum.photos/id/400/800/600"
                                 alt="Farmer scanning QR code on fertilizer product"

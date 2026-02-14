@@ -17,7 +17,10 @@ import {
     Business as BusinessIcon,
     LocationOn as LocationIcon,
     AccountBalance as BankIcon,
-    VerifiedUser as VerifiedUserIcon
+    VerifiedUser as VerifiedUserIcon,
+    CheckCircle as CheckCircleIcon,
+    Cancel as CancelIcon,
+    HourglassTop as HourglassTopIcon
 } from '@mui/icons-material';
 import { FetchCompanyListService, ApproveCompanyService } from '../../../utils/services/product.service';
 import { useDispatch } from 'react-redux';
@@ -108,7 +111,7 @@ const CompanyList = () => {
         navigate(`/admin/company/create?uuid=${uuid}`);
     };
 
-    const handleApprovalUpdate = async (isApproved: 0 | 1) => {
+    const handleApprovalUpdate = async (status: "approved" | "rejected" | "submitted") => {
         if (!selectedCompany?.company_uuid) return;
         if (!approvalRemark?.trim()) {
             dispatch(showSnackbar({ type: 'error', message: 'Remark is required.' }));
@@ -117,7 +120,7 @@ const CompanyList = () => {
         setApprovalLoading(true);
         const payload = {
             company_uuid: selectedCompany.company_uuid,
-            is_approved: isApproved,
+            approval_status: status,
             remark: approvalRemark.trim(),
         };
         const { code, message } = await ApproveCompanyService(payload);
@@ -129,6 +132,24 @@ const CompanyList = () => {
             dispatch(showSnackbar({ type: 'error', message: message || 'Failed to update approval status.' }));
         }
         setApprovalLoading(false);
+    };
+
+    const getApprovalStatus = (status?: string) => {
+        const normalized = (status || 'submitted').toLowerCase();
+        if (normalized === 'approved') return 'approved';
+        if (normalized === 'rejected') return 'rejected';
+        return 'submitted';
+    };
+
+    const getStatusChipProps = (status?: string) => {
+        const normalized = getApprovalStatus(status);
+        if (normalized === 'approved') {
+            return { label: 'Approved', color: 'success' as const, icon: <CheckCircleIcon sx={{ fontSize: 16 }} /> };
+        }
+        if (normalized === 'rejected') {
+            return { label: 'Rejected', color: 'error' as const, icon: <CancelIcon sx={{ fontSize: 16 }} /> };
+        }
+        return { label: 'Submitted', color: 'warning' as const, icon: <HourglassTopIcon sx={{ fontSize: 16 }} /> };
     };
 
     // Helper to render Detail Rows in Drawer
@@ -189,14 +210,15 @@ const CompanyList = () => {
                                 <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Company Details</TableCell>
                                 <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Contact Info</TableCell>
                                 <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>GST / PAN</TableCell>
-                                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Status</TableCell>
+                                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Active</TableCell>
+                                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Approval Status</TableCell>
                                 <TableCell align="right" sx={{ fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {loading ? (
                                 [...Array(5)].map((_, i) => (
-                                    <TableRow key={i}><TableCell colSpan={5}><Skeleton height={60} /></TableCell></TableRow>
+                                    <TableRow key={i}><TableCell colSpan={6}><Skeleton height={60} /></TableCell></TableRow>
                                 ))
                             ) : (
                                 companies.map((row) => (
@@ -222,6 +244,22 @@ const CompanyList = () => {
                                         </TableCell>
                                         <TableCell>
                                             <Chip label={row.is_active ? "Active" : "Inactive"} size="small" color={row.is_active ? "success" : "default"} />
+                                        </TableCell>
+                                        <TableCell>
+                                            {(() => {
+                                                const statusChip = getStatusChipProps(row.approval_status);
+                                                const remarkText = row.remark ? row.remark : "No remark";
+                                                return (
+                                                    <Tooltip title={remarkText}>
+                                                        <Chip
+                                                            label={statusChip.label}
+                                                            size="small"
+                                                            color={statusChip.color}
+                                                            icon={statusChip.icon}
+                                                        />
+                                                    </Tooltip>
+                                                );
+                                            })()}
                                         </TableCell>
                                         <TableCell align="right">
                                             <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center">
@@ -290,14 +328,21 @@ const CompanyList = () => {
                                     <Typography variant="h6" sx={{ fontWeight: 800 }}>{detailsCompany.company_name}</Typography>
                                     <Stack direction="row" spacing={1} alignItems="center">
                                         <Chip label={detailsCompany.is_active ? "Active" : "Inactive"} size="small" color={detailsCompany.is_active ? "success" : "default"} sx={{ height: 20, fontSize: 10 }} />
-                                        {detailsCompany.is_approved !== undefined && (
-                                            <Chip
-                                                label={detailsCompany.is_approved ? "Approved" : "Pending"}
-                                                size="small"
-                                                color={detailsCompany.is_approved ? "success" : "warning"}
-                                                sx={{ height: 20, fontSize: 10 }}
-                                            />
-                                        )}
+                                        {(() => {
+                                            const statusChip = getStatusChipProps(detailsCompany.approval_status);
+                                            const remarkText = detailsCompany.remark ? detailsCompany.remark : "No remark";
+                                            return (
+                                                <Tooltip title={remarkText}>
+                                                    <Chip
+                                                        label={statusChip.label}
+                                                        size="small"
+                                                        color={statusChip.color}
+                                                        icon={statusChip.icon}
+                                                        sx={{ height: 20, fontSize: 10 }}
+                                                    />
+                                                </Tooltip>
+                                            );
+                                        })()}
                                     </Stack>
                                 </Box>
                             </Box>
@@ -305,20 +350,11 @@ const CompanyList = () => {
                                 <Button
                                     size="small"
                                     variant="contained"
-                                    color="success"
+                                    color="primary"
                                     onClick={() => handleOpenStatusDialog(detailsCompany)}
-                                    sx={{ textTransform: 'none', fontWeight: 700, minWidth: 110 }}
+                                    sx={{ textTransform: 'none', fontWeight: 700, minWidth: 140 }}
                                 >
-                                    Approve
-                                </Button>
-                                <Button
-                                    size="small"
-                                    variant="outlined"
-                                    color="error"
-                                    onClick={() => handleOpenStatusDialog(detailsCompany)}
-                                    sx={{ textTransform: 'none', fontWeight: 700, minWidth: 110 }}
-                                >
-                                    Reject
+                                    Update Status
                                 </Button>
                             </Stack>
                         </Box>
@@ -354,6 +390,23 @@ const CompanyList = () => {
                         <DetailItem label="PAN Number" value={detailsCompany.pan_no} />
                         <DetailItem label="Bank Account" value={detailsCompany.bank_account_no} />
                         <DetailItem label="IFSC Code" value={detailsCompany.bank_ifsc_code} />
+
+                        <Divider sx={{ my: 3 }} />
+
+                        {/* Approval Info */}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <VerifiedUserIcon fontSize="small" color="primary" /> Approval details
+                        </Typography>
+                        <DetailItem label="Approval Status" value={getStatusChipProps(detailsCompany.approval_status).label} />
+                        {getApprovalStatus(detailsCompany.approval_status) === 'rejected' && (
+                            <DetailItem label="Rejection Remark" value={detailsCompany.remark} />
+                        )}
+                        {detailsCompany.approved_by && (
+                            <DetailItem label="Approved By" value={detailsCompany.approved_by} />
+                        )}
+                        {detailsCompany.approved_at && (
+                            <DetailItem label="Approved At" value={detailsCompany.approved_at} />
+                        )}
 
                         <Box sx={{ mt: 4, mb: 2 }}>
                             <Button
@@ -408,7 +461,7 @@ const CompanyList = () => {
                                     variant="outlined"
                                     color="error"
                                     disabled={approvalLoading}
-                                    onClick={() => handleApprovalUpdate(0)}
+                                    onClick={() => handleApprovalUpdate("rejected")}
                                     sx={{ textTransform: 'none', fontWeight: 700, minWidth: 140 }}
                                 >
                                     Reject
@@ -417,7 +470,7 @@ const CompanyList = () => {
                                     variant="contained"
                                     color="success"
                                     disabled={approvalLoading}
-                                    onClick={() => handleApprovalUpdate(1)}
+                                    onClick={() => handleApprovalUpdate("approved")}
                                     sx={{ textTransform: 'none', fontWeight: 700, minWidth: 140 }}
                                 >
                                     Approve

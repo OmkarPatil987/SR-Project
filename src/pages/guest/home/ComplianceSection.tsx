@@ -3,7 +3,7 @@ import { FileText, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
 
 const ComplianceSection: React.FC = () => {
     const purposes = [
-        { icon: <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />, text: "Verify authenticity of agri products" },
+        { icon: <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />, text: "Verify authenticity of Biostimulant Products" },
         { icon: <AlertTriangle className="h-5 w-5 md:h-6 md:w-6 text-amber-500" />, text: "Prevent fake and duplicate products" },
         { icon: <Search className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />, text: "Provide transparent product information" },
         { icon: <FileText className="h-5 w-5 md:h-6 md:w-6 text-stone-600" />, text: "Enable farmers to access correct usage details" },
@@ -21,7 +21,7 @@ const ComplianceSection: React.FC = () => {
                             Government Mandate
                         </h2>
                         <h3 className="text-2xl md:text-4xl font-extrabold text-stone-900 mb-5 leading-tight">
-                            Why QR Code on Agri Product Labels?
+                            Why QR Code on Biostimulant Product Labels?
                         </h3>
 
                         <div className="bg-stone-50 border-l-4 border-amber-400 p-5 md:p-6 rounded-r-xl mb-6 shadow-sm">
