@@ -75,4 +75,50 @@ export const responseDataPermissionUsingRole: any = {
             // }
         ],
     },
+    company_admin: {
+        user_locations: {
+            stateCodes: null,
+            districts: null,
+        },
+        user_role: [
+            {
+                role_slug: "company_admin",
+            },
+        ],
+        user_department: [],
+        user_type: [],
+        user_number: [],
+        user_role_permission: [
+            {
+                uuid: "product-001",
+                parent_id: "0",
+                name: "Products",
+                slug: "products",
+                module_url: "/admin/products",
+                icon: "Inventory",
+                module_order: "3",
+                is_navigation: 1,
+            },
+            {
+                uuid: "qr-static-001",
+                parent_id: "0",
+                name: "Static QR",
+                slug: "static-qr",
+                module_url: "/admin/static-qr",
+                icon: "QrCode",
+                module_order: "4",
+                is_navigation: 1,
+            },
+            {
+                uuid: "qr-dynamic-001",
+                parent_id: "0",
+                name: "Dynamic QR",
+                slug: "dynamic-qr",
+                module_url: "/admin/dynamic-qr",
+                icon: "QrCodeScanner",
+                module_order: "5",
+                is_navigation: 1,
+            },
+        ],
+    },
 };

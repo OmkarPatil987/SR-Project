@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, QrCode, LogIn, ChevronRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { NAVIGATE_GUEST } from '../../../constant';
 
 const Navbar: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -72,6 +73,13 @@ const Navbar: React.FC = () => {
                         <div className="h-6 w-[1px] bg-emerald-600/50 mx-4" />
 
                         <button
+                            onClick={() => navigate(NAVIGATE_GUEST.COMPANY_REGISTER)}
+                            className="flex items-center gap-2 px-5 py-2 bg-emerald-100 text-emerald-900 rounded-full font-bold hover:bg-emerald-50 transition-colors"
+                        >
+                            Register Company
+                        </button>
+
+                        <button
                             onClick={() => navigate('/auth/login')}
                             /* Changed login button to a white solid button for visibility */
                             className="flex items-center gap-2 px-5 py-2 bg-white text-emerald-800 rounded-full font-bold hover:bg-emerald-50 transition-colors"
@@ -97,6 +105,15 @@ const Navbar: React.FC = () => {
             <div className={`md:hidden absolute w-full bg-emerald-800 border-t border-emerald-600 transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
                 }`}>
                 <div className="px-4 pt-2 pb-6 space-y-2 shadow-xl">
+                    <button
+                        onClick={() => {
+                            navigate(NAVIGATE_GUEST.COMPANY_REGISTER);
+                            setIsOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-3 rounded-xl text-base font-medium text-emerald-50 hover:text-white hover:bg-white/10"
+                    >
+                        Register Company
+                    </button>
                     {navLinks.map((link) => (
                         <button
                             key={link.name}

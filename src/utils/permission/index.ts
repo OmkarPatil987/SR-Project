@@ -27,7 +27,14 @@ type NavigationItem = {
 
 export const handleMakingNestedData = (dispatch: any) => {
     const authUser = store.getState().authUser;
-    let mainPermissionsObject = responseDataPermissionUsingRole[authUser?.userDetails?.user_type === 'volunteer' ? 'volunteer' : 'admin'] ?? {};
+    const userType = authUser?.userDetails?.user_type;
+    const permissionKey =
+        userType === "volunteer"
+            ? "volunteer"
+            : userType === "company_admin"
+                ? "company_admin"
+                : "admin";
+    let mainPermissionsObject = responseDataPermissionUsingRole[permissionKey] ?? {};
     const user_role_permission: Array<user_role_permission> = mainPermissionsObject?.user_role_permission ?? [];
     let nestedPermissionsDataArray = store.getState().permission?.nestedPermissionsData ?? [];
     if (!nestedPermissionsDataArray || nestedPermissionsDataArray?.length === 0) {
