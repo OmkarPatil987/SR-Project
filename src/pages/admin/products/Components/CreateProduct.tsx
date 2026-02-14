@@ -80,7 +80,12 @@ const ProductForm: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const compRes = await FetchCompanyListService({ offset: 0, limit: 1000, status: 'active' });
+                const compRes = await FetchCompanyListService({
+                    offset: 0,
+                    limit: 1000,
+                    status: 'active',
+                    approval_status: 'approved',
+                });
                 if (compRes.code === 200) setCompanies(compRes.data.data);
 
                 if (isEdit && uuid) {

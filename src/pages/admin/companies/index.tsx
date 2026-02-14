@@ -38,6 +38,7 @@ const CompanyList = () => {
     const [totalCount, setTotalCount] = useState<number>(0);
     const [searchQuery, setSearchQuery] = useState<string>('');
     const debouncedSearch = useDebounce(searchQuery, 500);
+    const [approvalFilter, setApprovalFilter] = useState<'all' | 'approved' | 'rejected' | 'submitted'>('all');
 
     // Status Dialog State
     const [statusDialogOpen, setStatusDialogOpen] = useState(false);
@@ -61,6 +62,7 @@ const CompanyList = () => {
             search: debouncedSearch,
             search_key: 'company_name',
             search_value: debouncedSearch,
+            ...(approvalFilter !== 'all' ? { approval_status: approvalFilter } : {}),
         };
         try {
             const { code, data } = await FetchCompanyListService(payload);
@@ -80,11 +82,11 @@ const CompanyList = () => {
 
     useEffect(() => {
         fetchCompanies();
-    }, [page, rowsPerPage, debouncedSearch]);
+    }, [page, rowsPerPage, debouncedSearch, approvalFilter]);
 
     useEffect(() => {
         setPage(0);
-    }, [debouncedSearch]);
+    }, [debouncedSearch, approvalFilter]);
 
     const handleOpenStatusDialog = (company: any) => {
         setSelectedCompany(company);
@@ -189,7 +191,7 @@ const CompanyList = () => {
             </Box>
 
             <Card elevation={0} sx={{ borderRadius: 4, border: '1px solid #e7f3ed', overflow: 'hidden' }}>
-                <Box sx={{ p: 3, display: 'flex', alignItems: 'center', bgcolor: '#fff', borderBottom: '1px solid #e7f3ed' }}>
+                <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#fff', borderBottom: '1px solid #e7f3ed' }}>
                     <TextField
                         size="small"
                         placeholder="Search companies..."
@@ -201,6 +203,20 @@ const CompanyList = () => {
                         }}
                         sx={{ ...inputStyles, width: 350 }}
                     />
+                    <TextField
+                        select
+                        size="small"
+                        label="Approval Status"
+                        value={approvalFilter}
+                        onChange={(e) => setApprovalFilter(e.target.value as typeof approvalFilter)}
+                        SelectProps={{ native: true }}
+                        sx={{ ...inputStyles, width: 220 }}
+                    >
+                        <option value="all">All</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="submitted">Submitted</option>
+                    </TextField>
                 </Box>
 
                 <TableContainer>
