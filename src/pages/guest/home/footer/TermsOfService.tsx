@@ -55,7 +55,7 @@ const TermsOfService: React.FC = () => {
                                 <span className="text-emerald-600">03.</span> Prohibited Use
                             </h2>
                             <ul className="list-disc pl-5 space-y-2 text-stone-600">
-                                <li>Using the platform to generate QR codes for illegal or counterfeit agri-products.</li>
+                                <li>Using the platform to generate QR codes for illegal or counterfeit Biostimulant products.</li>
                                 <li>Attempting to bypass security protocols or scrape manufacturer data.</li>
                                 <li>Modifying Dynamic QR links to redirect users to unauthorized or malicious content.</li>
                             </ul>

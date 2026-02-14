@@ -35,7 +35,7 @@ const Benefits: React.FC = () => {
                         Why Choose apnaQR?
                     </Typography>
                     <Typography sx={{ color: '#64748b', mt: 2, maxWidth: 680, mx: 'auto' }}>
-                        The preferred choice for agri-input manufacturers across India for compliance and digital growth.
+                        The preferred choice for Biostimulant manufacturers across India for compliance and digital growth.
                     </Typography>
                 </Box>
 

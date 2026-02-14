@@ -14,7 +14,7 @@ const AboutSection: React.FC = () => {
                 </Box>
 
                 <Typography sx={{ color: '#334155', fontSize: { xs: 16, md: 18 }, textAlign: 'center', mb: 6 }}>
-                    <Box component="span" sx={{ fontWeight: 800, color: '#047857' }}>apnaQR</Box> is a dedicated QR Code generation platform developed with a singular focus: to support agri-product manufacturers in meeting the strict compliance standards of the
+                    <Box component="span" sx={{ fontWeight: 800, color: '#047857' }}>apnaQR</Box> is a dedicated QR Code generation platform developed with a singular focus: to support Biostimulant product manufacturers in meeting the strict compliance standards of the
                     <Box component="span" sx={{ fontWeight: 700, bgcolor: '#d1fae5', color: '#047857', px: 1, borderRadius: 1, ml: 0.5 }}>
                         Fertilizer Control Order (FCO) 1985
                     </Box>.
