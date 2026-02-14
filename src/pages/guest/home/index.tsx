@@ -10,6 +10,7 @@ import Footer from './Footer'
 import QRGenerator from './QRGenerator'
 import { HeroSlider } from './HeroSlider'
 import QRComparison from './QRComparision'
+import PricingSection from './PricingSection'
 
 const HomePage = () => {
   return (
@@ -21,6 +22,7 @@ const HomePage = () => {
           <StaticQr />
           <DynamicQr />
           <QRComparison/>
+          <PricingSection/>
           <HowItWorks />
           <Benefits />
           <AboutSection />

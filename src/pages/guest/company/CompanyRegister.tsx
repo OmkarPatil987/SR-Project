@@ -8,10 +8,24 @@ import {
     Divider,
     Grid,
     IconButton,
+    InputAdornment,
     TextField,
     Typography
 } from '@mui/material';
-import { Refresh } from '@mui/icons-material';
+import {
+    Refresh,
+    Business,
+    Email,
+    Phone,
+    LocationOn,
+    LocationCity,
+    MarkunreadMailbox,
+    Home,
+    CreditCard,
+    AccountBalance,
+    Badge,
+    People
+} from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -157,21 +171,32 @@ const CompanyRegister = () => {
     });
 
     return (
-        <Box sx={{ maxWidth: '1200px', mx: 'auto', py: 4, px: 2 }}>
-            <Card sx={{ borderRadius: '16px', border: '1px solid #e8f3eb', boxShadow: '0 10px 30px rgba(13,27,21,0.06)', overflow: 'hidden' }}>
-                <Box sx={{ p: 4, borderBottom: '1px solid #e8f3eb', bgcolor: '#f6fbf8' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#0e1b12' }}>Company Registration</Typography>
-                    <Typography sx={{ color: '#4c9a74', mt: 1 }}>
-                        Submit your company details for verification and approval.
+        <Box sx={{ maxWidth: '1200px', mx: 'auto', py: { xs: 3, md: 5 }, px: { xs: 2, md: 3 } }}>
+            <Card
+                sx={{
+                    borderRadius: '22px',
+                    border: '1px solid #e8f3eb',
+                    boxShadow: '0 14px 36px rgba(13,27,21,0.08)',
+                    overflow: 'hidden',
+                    transition: 'box-shadow 200ms ease',
+                    '&:hover': { boxShadow: '0 20px 44px rgba(13,27,21,0.12)' },
+                }}
+            >
+                <Box sx={{ p: { xs: 3, md: 4 }, borderBottom: '1px solid #e8f3eb', bgcolor: '#f6fbf8' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#0e1b12', lineHeight: 1.1 }}>
+                        Company Registration
+                    </Typography>
+                    <Typography sx={{ color: '#4c9a74', mt: 1, maxWidth: 680 }}>
+                        Submit your company details for verification and approval. Fields marked with * are required.
                     </Typography>
                 </Box>
 
                 <form onSubmit={formik.handleSubmit}>
-                    <Box sx={{ p: 4 }}>
-                        <Typography sx={{ fontSize: '13px', letterSpacing: '0.08em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
+                    <Box sx={{ p: { xs: 3, md: 4 } }}>
+                        <Typography sx={{ fontSize: '12px', letterSpacing: '0.12em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
                             BASIC INFORMATION
                         </Typography>
-                        <Grid container spacing={3}>
+                        <Grid container spacing={{ xs: 2, md: 3 }}>
                             <Grid item xs={12} md={4}>
                                 <TextField
                                     fullWidth
@@ -182,6 +207,14 @@ const CompanyRegister = () => {
                                     onChange={formik.handleChange}
                                     error={formik.touched.company_name && !!formik.errors.company_name}
                                     helperText={formik.touched.company_name && formik.errors.company_name}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Business fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={4}>
@@ -194,6 +227,14 @@ const CompanyRegister = () => {
                                     onChange={formik.handleChange}
                                     error={formik.touched.email && !!formik.errors.email}
                                     helperText={formik.touched.email && formik.errors.email}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Email fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={4}>
@@ -210,6 +251,14 @@ const CompanyRegister = () => {
                                     inputProps={{ inputMode: 'numeric' }}
                                     error={formik.touched.mobile && !!formik.errors.mobile}
                                     helperText={formik.touched.mobile && formik.errors.mobile}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Phone fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                         </Grid>
@@ -217,11 +266,11 @@ const CompanyRegister = () => {
 
                     <Divider />
 
-                    <Box sx={{ p: 4, bgcolor: '#f8fbf9' }}>
-                        <Typography sx={{ fontSize: '13px', letterSpacing: '0.08em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
+                    <Box sx={{ p: { xs: 3, md: 4 }, bgcolor: '#f8fbf9' }}>
+                        <Typography sx={{ fontSize: '12px', letterSpacing: '0.12em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
                             ADDRESS
                         </Typography>
-                        <Grid container spacing={3}>
+                        <Grid container spacing={{ xs: 2, md: 3 }}>
                             <Grid item xs={12} md={4}>
                                 <TextField
                                     fullWidth
@@ -232,6 +281,14 @@ const CompanyRegister = () => {
                                     onChange={formik.handleChange}
                                     error={formik.touched.state && !!formik.errors.state}
                                     helperText={formik.touched.state && formik.errors.state}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <LocationOn fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={4}>
@@ -244,6 +301,14 @@ const CompanyRegister = () => {
                                     onChange={formik.handleChange}
                                     error={formik.touched.city && !!formik.errors.city}
                                     helperText={formik.touched.city && formik.errors.city}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <LocationCity fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={4}>
@@ -260,6 +325,14 @@ const CompanyRegister = () => {
                                     inputProps={{ inputMode: 'numeric' }}
                                     error={formik.touched.pincode && !!formik.errors.pincode}
                                     helperText={formik.touched.pincode && formik.errors.pincode}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <MarkunreadMailbox fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -274,6 +347,14 @@ const CompanyRegister = () => {
                                     onChange={formik.handleChange}
                                     error={formik.touched.address && !!formik.errors.address}
                                     helperText={formik.touched.address && formik.errors.address}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}>
+                                                <Home fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                         </Grid>
@@ -281,11 +362,11 @@ const CompanyRegister = () => {
 
                     <Divider />
 
-                    <Box sx={{ p: 4 }}>
-                        <Typography sx={{ fontSize: '13px', letterSpacing: '0.08em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
+                    <Box sx={{ p: { xs: 3, md: 4 } }}>
+                        <Typography sx={{ fontSize: '12px', letterSpacing: '0.12em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
                             LEGAL & BANKING
                         </Typography>
-                        <Grid container spacing={3}>
+                        <Grid container spacing={{ xs: 2, md: 3 }}>
                             <Grid item xs={12} md={6}>
                                 <TextField
                                     fullWidth
@@ -296,6 +377,14 @@ const CompanyRegister = () => {
                                     onChange={(e) => formik.setFieldValue('gst_no', e.target.value.toUpperCase())}
                                     error={formik.touched.gst_no && !!formik.errors.gst_no}
                                     helperText={formik.touched.gst_no && formik.errors.gst_no}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Badge fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={6}>
@@ -308,6 +397,14 @@ const CompanyRegister = () => {
                                     onChange={(e) => formik.setFieldValue('pan_no', e.target.value.toUpperCase())}
                                     error={formik.touched.pan_no && !!formik.errors.pan_no}
                                     helperText={formik.touched.pan_no && formik.errors.pan_no}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <CreditCard fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={6}>
@@ -324,6 +421,14 @@ const CompanyRegister = () => {
                                     inputProps={{ inputMode: 'numeric' }}
                                     error={formik.touched.bank_account_no && !!formik.errors.bank_account_no}
                                     helperText={formik.touched.bank_account_no && formik.errors.bank_account_no}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <AccountBalance fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={6}>
@@ -336,6 +441,14 @@ const CompanyRegister = () => {
                                     onChange={(e) => formik.setFieldValue('bank_ifsc_code', e.target.value.toUpperCase())}
                                     error={formik.touched.bank_ifsc_code && !!formik.errors.bank_ifsc_code}
                                     helperText={formik.touched.bank_ifsc_code && formik.errors.bank_ifsc_code}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <AccountBalance fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={6}>
@@ -348,6 +461,14 @@ const CompanyRegister = () => {
                                     onChange={formik.handleChange}
                                     error={formik.touched.referral_name && !!formik.errors.referral_name}
                                     helperText={formik.touched.referral_name && formik.errors.referral_name}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <People fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                 />
                             </Grid>
                         </Grid>
@@ -355,14 +476,14 @@ const CompanyRegister = () => {
 
                     <Divider />
 
-                    <Box sx={{ p: 4, bgcolor: '#f8fbf9' }}>
-                        <Typography sx={{ fontSize: '13px', letterSpacing: '0.08em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
+                    <Box sx={{ p: { xs: 3, md: 4 }, bgcolor: '#f8fbf9' }}>
+                        <Typography sx={{ fontSize: '12px', letterSpacing: '0.12em', fontWeight: 800, color: '#2f6d4f', mb: 2 }}>
                             CAPTCHA VERIFICATION
                         </Typography>
                         <Box
                             sx={(theme) => ({
-                                p: 3,
-                                borderRadius: 2,
+                                p: { xs: 2.5, md: 3 },
+                                borderRadius: 3,
                                 border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
                                 bgcolor: alpha(theme.palette.primary.main, 0.06),
                             })}
@@ -377,7 +498,7 @@ const CompanyRegister = () => {
                                 }}
                             >
                                 <Box>
-                                    <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>Human Verification</Typography>
+                                    <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>Human Verification</Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         Please solve this simple math problem.
                                     </Typography>
@@ -409,7 +530,7 @@ const CompanyRegister = () => {
                                         }}
                                         error={formik.touched.captcha_answer && !!formik.errors.captcha_answer}
                                         helperText={formik.touched.captcha_answer && formik.errors.captcha_answer}
-                                        sx={{ width: 140, '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
+                                        sx={{ width: { xs: '100%', sm: 160 }, '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
                                     />
                                     <IconButton
                                         onClick={fetchCaptchaToken}
@@ -432,8 +553,21 @@ const CompanyRegister = () => {
                         sx={{ display: 'none' }}
                     />
 
-                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button type="submit" variant="contained" sx={{ bgcolor: '#19b34d', '&:hover': { bgcolor: '#159a41' }, borderRadius: '8px', px: 4, textTransform: 'none', fontWeight: 'bold' }}>
+                    <Box sx={{ p: { xs: 3, md: 4 }, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            sx={{
+                                bgcolor: '#19b34d',
+                                '&:hover': { bgcolor: '#159a41' },
+                                borderRadius: '10px',
+                                px: 4,
+                                py: 1.2,
+                                textTransform: 'none',
+                                fontWeight: 'bold',
+                                boxShadow: '0 8px 20px rgba(25,179,77,0.25)',
+                            }}
+                        >
                             Submit Registration
                         </Button>
                     </Box>
