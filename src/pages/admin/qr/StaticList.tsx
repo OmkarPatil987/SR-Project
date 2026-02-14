@@ -75,7 +75,7 @@ const StaticQRList: React.FC = () => {
             const { code, data } = await FetchQRListService(payload);
             if (code === 200) {
                 setQrList(data?.data ?? []);
-                setTotalCount(data?.total_count ?? 0);
+                setTotalCount(data?.filter_count ?? 0);
                 dispatch(resetRefresh());
             } else {
                 setQrList([]);
