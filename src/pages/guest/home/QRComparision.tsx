@@ -1,69 +1,101 @@
 import React from 'react';
-import { Check, RefreshCw, Lock, Zap, FileText, X } from 'lucide-react';
+import { Box, Container, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import {
+    CheckCircle,
+    Cancel,
+    Update,
+    Lock,
+    Bolt,
+    Description,
+} from '@mui/icons-material';
 
 const QRComparison: React.FC = () => {
     const comparisonData = [
-        { feature: 'Use Case', static: 'Fixed information', dynamic: 'Future updates', icon: <FileText size={18} /> },
-        { feature: 'Data Editability', static: 'Not editable', dynamic: 'Editable anytime', icon: <RefreshCw size={18} /> },
-        { feature: 'QR Lifespan', static: 'New QR for changes', dynamic: 'Same QR for years', icon: <Zap size={18} /> },
-        { feature: 'History & Versions', static: 'Version history maintained', dynamic: 'Updates tracked online', icon: <Lock size={18} /> },
-        { feature: 'Best For', static: 'Fixed data labels', dynamic: 'Ongoing updates', icon: <Check size={18} /> },
+        { feature: 'Use Case', static: 'Fixed information', dynamic: 'Future updates', icon: <Description fontSize="small" /> },
+        { feature: 'Data Editability', static: 'Not editable', dynamic: 'Editable anytime', icon: <Update fontSize="small" /> },
+        { feature: 'QR Lifespan', static: 'New QR for changes', dynamic: 'Same QR for years', icon: <Bolt fontSize="small" /> },
+        { feature: 'History & Versions', static: 'Version history maintained', dynamic: 'Updates tracked online', icon: <Lock fontSize="small" /> },
+        { feature: 'Best For', static: 'Fixed data labels', dynamic: 'Ongoing updates', icon: <CheckCircle fontSize="small" /> },
     ];
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-12">
-            <div className="text-center mb-10">
-                <h2 className="text-3xl font-bold text-stone-900 mb-2">Static vs Dynamic QR Codes</h2>
-                <p className="text-stone-600">Choose the right technology for your agricultural packaging</p>
-            </div>
+        <Box component="section" sx={{ py: { xs: 6, md: 10 }, bgcolor: '#fff' }}>
+            <Container maxWidth="lg">
+                <Box textAlign="center" mb={{ xs: 4, md: 6 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                        Static vs Dynamic QR Codes
+                    </Typography>
+                    <Typography sx={{ color: '#64748b', mt: 1 }}>
+                        Choose the right technology for your agricultural packaging
+                    </Typography>
+                </Box>
 
-            <div className="bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-3 bg-stone-50 border-b border-stone-200">
-                    <div className="p-6 font-bold text-stone-500 uppercase text-sm tracking-wider hidden md:block">Feature</div>
-                    <div className="p-6 font-bold text-stone-800 text-center text-lg bg-stone-100/50">Static QR Code</div>
-                    <div className="p-6 font-bold text-emerald-700 text-center text-lg bg-emerald-50">Dynamic QR Code</div>
-                </div>
-
-                {comparisonData.map((item, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 border-b border-stone-100 hover:bg-stone-50/50 transition-colors">
-                        {/* Feature Label (Mobile & Desktop) */}
-                        <div className="p-4 md:p-6 flex items-center gap-3 text-stone-700 font-semibold bg-stone-50 md:bg-transparent">
-                            <span className="text-emerald-600">{item.icon}</span>
-                            {item.feature}
-                        </div>
-
-                        {/* Static Column */}
-                        <div className="p-4 md:p-6 text-center flex items-center justify-center border-r border-stone-100 text-stone-600">
-                            {typeof item.static === 'boolean' ? (
-                                item.static ? <Check className="text-emerald-500" /> : <X className="text-rose-400" />
-                            ) : (
-                                item.static
-                            )}
-                        </div>
-
-                        {/* Dynamic Column */}
-                        <div className="p-4 md:p-6 text-center flex items-center justify-center bg-emerald-50/30 font-medium text-emerald-900">
-                            {typeof item.dynamic === 'boolean' ? (
-                                item.dynamic ? <Check className="text-emerald-600" /> : <X className="text-rose-400" />
-                            ) : (
-                                item.dynamic
-                            )}
-                        </div>
-                    </div>
-                ))}
-
-                {/* Use Case Footer */}
-                <div className="grid grid-cols-1 md:grid-cols-3 bg-stone-900 text-white">
-                    <div className="p-6 font-bold uppercase text-xs tracking-widest flex items-center">Typical Use Cases</div>
-                    <div className="p-6 text-sm text-stone-300 border-r border-stone-700">
-                        Fixed product info, MFG Date, Expiry Date, Batch Number.
-                    </div>
-                    <div className="p-6 text-sm text-emerald-200 bg-emerald-900/50">
-                        Product updates, customer support, long-term labels.
-                    </div>
-                </div>
-            </div>
-        </div>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        borderRadius: 4,
+                        border: '1px solid #e2e8f0',
+                        overflow: 'hidden',
+                        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+                    }}
+                >
+                    <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+                        <Table stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ bgcolor: '#f8fafc', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: 12 }}>
+                                        Feature
+                                    </TableCell>
+                                    <TableCell align="center" sx={{ bgcolor: '#f1f5f9', fontWeight: 800 }}>
+                                        Static QR Code
+                                    </TableCell>
+                                    <TableCell align="center" sx={{ bgcolor: '#ecfdf5', fontWeight: 800, color: '#047857' }}>
+                                        Dynamic QR Code
+                                    </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {comparisonData.map((item) => (
+                                    <TableRow key={item.feature} hover>
+                                        <TableCell sx={{ fontWeight: 600, color: '#334155' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                <Box sx={{ color: '#10b981' }}>{item.icon}</Box>
+                                                {item.feature}
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell align="center" sx={{ color: '#64748b' }}>
+                                            {typeof item.static === 'boolean'
+                                                ? item.static
+                                                    ? <CheckCircle sx={{ color: '#16a34a' }} />
+                                                    : <Cancel sx={{ color: '#f43f5e' }} />
+                                                : item.static}
+                                        </TableCell>
+                                        <TableCell align="center" sx={{ bgcolor: '#f0fdf4', fontWeight: 600, color: '#065f46' }}>
+                                            {typeof item.dynamic === 'boolean'
+                                                ? item.dynamic
+                                                    ? <CheckCircle sx={{ color: '#16a34a' }} />
+                                                    : <Cancel sx={{ color: '#f43f5e' }} />
+                                                : item.dynamic}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                <TableRow>
+                                    <TableCell sx={{ bgcolor: '#0f172a', color: '#fff', fontWeight: 800 }}>
+                                        Typical Use Cases
+                                    </TableCell>
+                                    <TableCell sx={{ bgcolor: '#111827', color: '#cbd5f5' }}>
+                                        Fixed product info, MFG Date, Expiry Date, Batch Number.
+                                    </TableCell>
+                                    <TableCell sx={{ bgcolor: '#064e3b', color: '#d1fae5' }}>
+                                        Product updates, customer support, long-term labels.
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Paper>
+            </Container>
+        </Box>
     );
 };
 

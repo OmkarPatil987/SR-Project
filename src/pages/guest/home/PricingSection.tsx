@@ -1,6 +1,26 @@
 import React from 'react';
+import {
+    Box,
+    Button,
+    Card,
+    Container,
+    Grid,
+    Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Typography,
+} from '@mui/material';
+import {
+    Cloud,
+    Apartment,
+    CheckCircle,
+    Star,
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { Check, Cloud, Server, Sparkles } from 'lucide-react';
 
 const PricingSection: React.FC = () => {
     const navigate = useNavigate();
@@ -27,186 +47,263 @@ const PricingSection: React.FC = () => {
     ];
 
     return (
-        <section id="pricing" className="py-14 md:py-20 bg-[#f8fbf9]">
-            <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-                <div className="text-center mb-12 md:mb-16">
-                    <p className="text-emerald-700 text-xs md:text-sm font-bold tracking-[0.3em] uppercase">
+        <Box component="section" id="pricing" sx={{ py: { xs: 7, md: 12 }, bgcolor: '#f8fbf9' }}>
+            <Container maxWidth="lg">
+                <Box textAlign="center" mb={{ xs: 5, md: 8 }}>
+                    <Typography variant="overline" sx={{ color: '#047857', fontWeight: 800, letterSpacing: '0.25em' }}>
                         Flexible Deployment
-                    </p>
-                    <h2 className="text-3xl md:text-5xl font-extrabold text-stone-900 mt-3">
+                    </Typography>
+                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f172a', mt: 1 }}>
                         Choose Your Deployment Model
-                    </h2>
-                    <p className="text-stone-600 text-base md:text-lg mt-4 max-w-3xl mx-auto">
-                        Whether you prefer cloud convenience or full infrastructure control, apnaQR supports both deployment
-                        models tailored to your business needs.
-                    </p>
-                </div>
+                    </Typography>
+                    <Typography sx={{ color: '#64748b', mt: 2, maxWidth: 720, mx: 'auto' }}>
+                        Whether you prefer cloud convenience or full infrastructure control, apnaQR supports both deployment models tailored to your business needs.
+                    </Typography>
+                </Box>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
-                    <div className="relative bg-white rounded-3xl p-6 md:p-10 shadow-lg border-2 border-emerald-200 hover:shadow-2xl transition">
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-700 text-white text-[11px] md:text-xs font-bold px-4 py-1 rounded-full tracking-widest">
-                            MOST POPULAR
-                        </div>
-                        <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-semibold text-sm px-4 py-2 rounded-full">
-                            <Cloud className="h-4 w-4" />
-                            Cloud SaaS
-                        </div>
-                        <div className="mt-6 flex items-center gap-3">
-                            <Sparkles className="h-10 w-10 text-emerald-600" />
-                            <div>
-                                <h3 className="text-2xl md:text-3xl font-extrabold text-stone-900">Cloud Hosted Plan</h3>
-                                <p className="text-stone-600 text-sm md:text-base mt-1">
-                                    Perfect for manufacturers who want to get started quickly without any infrastructure setup.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="mt-6">
-                            <div className="text-4xl md:text-5xl font-black text-emerald-800">
-                                ₹499 <span className="text-base md:text-lg text-stone-500 font-semibold">/month</span>
-                            </div>
-                            <p className="text-xs md:text-sm text-stone-500 mt-2">Billed annually (₹5,988/year)</p>
-                            <p className="text-xs text-stone-400 mt-1">*Terms & Conditions apply</p>
-                        </div>
-
-                        <ul className="mt-6 space-y-3">
-                            {cloudFeatures.map((feature) => (
-                                <li key={feature} className="flex items-start gap-3 text-sm md:text-base text-stone-700">
-                                    <span className="h-6 w-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mt-0.5">
-                                        <Check className="h-4 w-4" />
-                                    </span>
-                                    <span>{feature}</span>
-                                </li>
-                            ))}
-                        </ul>
-
-                        <button
-                            type="button"
-                            onClick={() => navigate('/company/register')}
-                            className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 text-white font-bold py-3.5 hover:bg-emerald-800 transition"
+                <Grid container spacing={{ xs: 3, md: 4 }}>
+                    <Grid item xs={12} md={6}>
+                        <Card
+                            sx={{
+                                p: { xs: 3, md: 4 },
+                                borderRadius: 4,
+                                border: '2px solid #a7f3d0',
+                                boxShadow: '0 14px 36px rgba(15, 23, 42, 0.08)',
+                                position: 'relative',
+                                overflow: 'visible',
+                                pt: { xs: 4, md: 5 },
+                            }}
                         >
-                            Get Started Now
-                        </button>
-                    </div>
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    top: -22,
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    bgcolor: '#047857',
+                                    color: '#fff',
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                    letterSpacing: '0.22em',
+                                    px: 3,
+                                    py: 0.6,
+                                    borderRadius: 999,
+                                    zIndex: 2,
+                                    boxShadow: '0 8px 18px rgba(4, 120, 87, 0.35)',
+                                    border: '2px solid #bbf7d0',
+                                }}
+                            >
+                                MOST POPULAR
+                            </Box>
 
-                    <div className="relative bg-gradient-to-br from-white to-amber-50 rounded-3xl p-6 md:p-10 shadow-lg border-2 border-amber-200 hover:shadow-2xl transition">
-                        <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 font-semibold text-sm px-4 py-2 rounded-full">
-                            <Server className="h-4 w-4" />
-                            On-Premise
-                        </div>
-                        <div className="mt-6 flex items-center gap-3">
-                            <Server className="h-10 w-10 text-amber-700" />
-                            <div>
-                                <h3 className="text-2xl md:text-3xl font-extrabold text-stone-900">Enterprise Deployment</h3>
-                                <p className="text-stone-600 text-sm md:text-base mt-1">
-                                    For large manufacturers who need complete control over their data and infrastructure.
-                                </p>
-                            </div>
-                        </div>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                                <Box sx={{ bgcolor: '#ecfdf5', borderRadius: 999, p: 1 }}>
+                                    <Cloud sx={{ color: '#047857' }} />
+                                </Box>
+                                <Typography sx={{ fontWeight: 800, color: '#047857' }}>Cloud SaaS</Typography>
+                            </Stack>
 
-                        <div className="mt-6">
-                            <div className="text-3xl md:text-4xl font-black text-amber-800">Custom Pricing</div>
-                            <p className="text-sm text-stone-600 mt-2 italic">Based on infrastructure & requirements</p>
-                        </div>
+                            <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 3 }}>
+                                <Star sx={{ color: '#10b981' }} />
+                                <Box>
+                                    <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                                        Cloud Hosted Plan
+                                    </Typography>
+                                    <Typography sx={{ color: '#64748b' }}>
+                                        Perfect for manufacturers who want to get started quickly without any infrastructure setup.
+                                    </Typography>
+                                </Box>
+                            </Stack>
 
-                        <ul className="mt-6 space-y-3">
-                            {onPremFeatures.map((feature) => (
-                                <li key={feature} className="flex items-start gap-3 text-sm md:text-base text-stone-700">
-                                    <span className="h-6 w-6 rounded-full bg-amber-600 text-white flex items-center justify-center mt-0.5">
-                                        <Check className="h-4 w-4" />
-                                    </span>
-                                    <span>{feature}</span>
-                                </li>
-                            ))}
-                        </ul>
+                            <Box sx={{ mt: 3 }}>
+                                <Typography variant="h3" sx={{ fontWeight: 900, color: '#064e3b' }}>
+                                    ?499 <Box component="span" sx={{ fontSize: 16, color: '#64748b', fontWeight: 600 }}>/month</Box>
+                                </Typography>
+                                <Typography sx={{ color: '#94a3b8', mt: 1, fontSize: 13 }}>Billed annually (?5,988/year)</Typography>
+                                <Typography sx={{ color: '#94a3b8', fontSize: 12 }}>*Terms & Conditions apply</Typography>
+                            </Box>
 
-                        <a
-                            href="mailto:contact@apnaqr.co.in"
-                            className="mt-8 inline-flex w-full items-center justify-center rounded-xl border-2 border-amber-800 text-amber-900 font-bold py-3.5 hover:bg-amber-800 hover:text-white transition"
+                            <Stack spacing={1.5} sx={{ mt: 3 }}>
+                                {cloudFeatures.map((feature) => (
+                                    <Stack key={feature} direction="row" spacing={1.5} alignItems="flex-start">
+                                        <CheckCircle sx={{ color: '#16a34a', mt: 0.2 }} fontSize="small" />
+                                        <Typography sx={{ color: '#334155' }}>{feature}</Typography>
+                                    </Stack>
+                                ))}
+                            </Stack>
+
+                            <Button
+                                onClick={() => navigate('/company/register')}
+                                variant="contained"
+                                sx={{
+                                    mt: 3,
+                                    width: '100%',
+                                    bgcolor: '#047857',
+                                    '&:hover': { bgcolor: '#065f46' },
+                                    borderRadius: 2,
+                                    py: 1.4,
+                                    fontWeight: 800,
+                                    textTransform: 'none',
+                                }}
+                            >
+                                Get Started Now
+                            </Button>
+                        </Card>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                        <Card
+                            sx={{
+                                p: { xs: 3, md: 4 },
+                                borderRadius: 4,
+                                border: '2px solid #fde68a',
+                                background: 'linear-gradient(135deg, #ffffff 0%, #fffbeb 100%)',
+                                boxShadow: '0 14px 36px rgba(15, 23, 42, 0.08)',
+                            }}
                         >
-                            Contact Sales Team
-                        </a>
-                    </div>
-                </div>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                                <Box sx={{ bgcolor: '#fef3c7', borderRadius: 999, p: 1 }}>
+                                    <Apartment sx={{ color: '#b45309' }} />
+                                </Box>
+                                <Typography sx={{ fontWeight: 800, color: '#b45309' }}>On-Premise</Typography>
+                            </Stack>
 
-                <div className="mt-12 md:mt-16 bg-white rounded-3xl p-6 md:p-10 shadow-lg border border-stone-100">
-                    <h3 className="text-2xl md:text-3xl font-extrabold text-stone-900 text-center">
+                            <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 3 }}>
+                                <Apartment sx={{ color: '#b45309' }} />
+                                <Box>
+                                    <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                                        Enterprise Deployment
+                                    </Typography>
+                                    <Typography sx={{ color: '#64748b' }}>
+                                        For large manufacturers who need complete control over their data and infrastructure.
+                                    </Typography>
+                                </Box>
+                            </Stack>
+
+                            <Box sx={{ mt: 3 }}>
+                                <Typography variant="h4" sx={{ fontWeight: 900, color: '#92400e' }}>
+                                    Custom Pricing
+                                </Typography>
+                                <Typography sx={{ color: '#64748b', fontStyle: 'italic' }}>
+                                    Based on infrastructure & requirements
+                                </Typography>
+                            </Box>
+
+                            <Stack spacing={1.5} sx={{ mt: 3 }}>
+                                {onPremFeatures.map((feature) => (
+                                    <Stack key={feature} direction="row" spacing={1.5} alignItems="flex-start">
+                                        <CheckCircle sx={{ color: '#b45309', mt: 0.2 }} fontSize="small" />
+                                        <Typography sx={{ color: '#334155' }}>{feature}</Typography>
+                                    </Stack>
+                                ))}
+                            </Stack>
+
+                            <Button
+                                href="mailto:contact@apnaqr.co.in"
+                                variant="outlined"
+                                sx={{
+                                    mt: 3,
+                                    width: '100%',
+                                    borderColor: '#92400e',
+                                    color: '#92400e',
+                                    borderRadius: 2,
+                                    py: 1.4,
+                                    fontWeight: 800,
+                                    textTransform: 'none',
+                                    '&:hover': { bgcolor: '#92400e', color: '#fff' },
+                                }}
+                            >
+                                Contact Sales Team
+                            </Button>
+                        </Card>
+                    </Grid>
+                </Grid>
+
+                <Card
+                    sx={{
+                        mt: { xs: 6, md: 8 },
+                        p: { xs: 3, md: 4 },
+                        borderRadius: 4,
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.08)',
+                    }}
+                >
+                    <Typography variant="h4" sx={{ fontWeight: 900, textAlign: 'center', color: '#0f172a' }}>
                         Feature Comparison
-                    </h3>
-                    <div className="mt-6 overflow-x-auto">
-                        <table className="w-full min-w-[640px] text-left">
-                            <thead>
-                                <tr className="bg-stone-50 text-stone-700 text-sm">
-                                    <th className="py-4 px-4 font-bold">Feature</th>
-                                    <th className="py-4 px-4 font-bold">Cloud SaaS</th>
-                                    <th className="py-4 px-4 font-bold">On-Premise</th>
-                                </tr>
-                            </thead>
-                            <tbody className="text-sm md:text-base text-stone-700">
-                                <tr className="border-t">
-                                    <td className="py-4 px-4 font-semibold">Setup Time</td>
-                                    <td className="py-4 px-4">5 Minutes</td>
-                                    <td className="py-4 px-4">1-2 Weeks</td>
-                                </tr>
-                                <tr className="border-t">
-                                    <td className="py-4 px-4 font-semibold">Infrastructure Required</td>
-                                    <td className="py-4 px-4">None</td>
-                                    <td className="py-4 px-4">Your Own Server</td>
-                                </tr>
-                                <tr className="border-t">
-                                    <td className="py-4 px-4 font-semibold">Data Hosting</td>
-                                    <td className="py-4 px-4">apnaQR Cloud</td>
-                                    <td className="py-4 px-4">Your Server</td>
-                                </tr>
-                                <tr className="border-t">
-                                    <td className="py-4 px-4 font-semibold">Updates</td>
-                                    <td className="py-4 px-4">Automatic</td>
-                                    <td className="py-4 px-4">Scheduled with AMC</td>
-                                </tr>
-                                <tr className="border-t">
-                                    <td className="py-4 px-4 font-semibold">Customization</td>
-                                    <td className="py-4 px-4">Standard Features</td>
-                                    <td className="py-4 px-4">Fully Customizable</td>
-                                </tr>
-                                <tr className="border-t">
-                                    <td className="py-4 px-4 font-semibold">Support</td>
-                                    <td className="py-4 px-4">Email & Chat</td>
-                                    <td className="py-4 px-4">Dedicated Support Team</td>
-                                </tr>
-                                <tr className="border-t">
-                                    <td className="py-4 px-4 font-semibold">Best For</td>
-                                    <td className="py-4 px-4">MSMEs & Mid-size Manufacturers</td>
-                                    <td className="py-4 px-4">Large Enterprises</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                    </Typography>
+                    <TableContainer sx={{ mt: 3, overflowX: 'auto' }}>
+                        <Table stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: 800, bgcolor: '#f8fafc' }}>Feature</TableCell>
+                                    <TableCell sx={{ fontWeight: 800, bgcolor: '#f8fafc' }}>Cloud SaaS</TableCell>
+                                    <TableCell sx={{ fontWeight: 800, bgcolor: '#f8fafc' }}>On-Premise</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {[
+                                    ['Setup Time', '5 Minutes', '1-2 Weeks'],
+                                    ['Infrastructure Required', 'None', 'Your Own Server'],
+                                    ['Data Hosting', 'apnaQR Cloud', 'Your Server'],
+                                    ['Updates', 'Automatic', 'Scheduled with AMC'],
+                                    ['Customization', 'Standard Features', 'Fully Customizable'],
+                                    ['Support', 'Email & Chat', 'Dedicated Support Team'],
+                                    ['Best For', 'MSMEs & Mid-size Manufacturers', 'Large Enterprises'],
+                                ].map((row) => (
+                                    <TableRow key={row[0]}>
+                                        <TableCell sx={{ fontWeight: 700 }}>{row[0]}</TableCell>
+                                        <TableCell>{row[1]}</TableCell>
+                                        <TableCell>{row[2]}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Card>
 
-                <div className="mt-10 md:mt-12 bg-emerald-50 border-l-4 border-emerald-600 rounded-2xl p-5 md:p-6">
-                    <p className="font-bold text-stone-900">Not sure which option is right for you?</p>
-                    <p className="text-stone-700 mt-1">
-                        Contact us at <span className="font-semibold">+91 9834521541</span> or{' '}
-                        <span className="font-semibold">contact@apnaqr.co.in</span> for a free consultation.
-                    </p>
-                </div>
+                <Card
+                    sx={{
+                        mt: { xs: 4, md: 6 },
+                        p: { xs: 3, md: 3.5 },
+                        borderRadius: 3,
+                        bgcolor: '#ecfdf5',
+                        borderLeft: '5px solid #047857',
+                    }}
+                >
+                    <Typography sx={{ fontWeight: 800, color: '#0f172a' }}>
+                        Not sure which option is right for you?
+                    </Typography>
+                    <Typography sx={{ color: '#334155', mt: 1 }}>
+                        Contact us at <Box component="span" sx={{ fontWeight: 700 }}>+91 9834521541</Box> or{' '}
+                        <Box component="span" sx={{ fontWeight: 700 }}>contact@apnaqr.co.in</Box> for a free consultation.
+                    </Typography>
+                </Card>
 
-                <div className="mt-8 md:mt-10 bg-white border border-stone-200 rounded-2xl p-6 md:p-8">
-                    <h4 className="text-lg md:text-xl font-bold text-stone-900">Terms & Conditions</h4>
-                    <ul className="mt-4 space-y-2 text-sm md:text-base text-stone-600 list-disc list-inside">
-                        <li>Cloud SaaS plan requires 12 months advance payment (₹5,988).</li>
+                <Card
+                    sx={{
+                        mt: { xs: 4, md: 5 },
+                        p: { xs: 3, md: 4 },
+                        borderRadius: 3,
+                        border: '1px solid #e2e8f0',
+                    }}
+                >
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                        Terms & Conditions
+                    </Typography>
+                    <Box component="ul" sx={{ mt: 2, pl: 3, color: '#64748b' }}>
+                        <li>Cloud SaaS plan requires 12 months advance payment (?5,988).</li>
                         <li>No refunds available once the subscription is activated.</li>
                         <li>Subscription auto-renews annually unless cancelled 30 days before renewal date.</li>
                         <li>Service availability is subject to 99.9% uptime SLA.</li>
                         <li>Fair usage policy applies - unlimited QR generation for legitimate business use.</li>
-                        <li>On-Premise pricing is customized based on infrastructure requirements and includes one-time setup fee.</li>
+                        <li>On-Premise deployment pricing is customized based on infrastructure requirements and includes one-time setup fee.</li>
                         <li>AMC (Annual Maintenance Contract) for On-Premise is billed separately and includes updates & support.</li>
                         <li>Prices are subject to change with 30 days notice to existing customers.</li>
                         <li>All prices are exclusive of applicable GST.</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
+                    </Box>
+                </Card>
+            </Container>
+        </Box>
     );
 };
 

@@ -1,62 +1,93 @@
 import React from 'react';
-import { FileText, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
+import { Box, Card, Container, Grid, Stack, Typography } from '@mui/material';
+import {
+    CheckCircle,
+    WarningAmber,
+    Search,
+    Article,
+} from '@mui/icons-material';
 
 const ComplianceSection: React.FC = () => {
     const purposes = [
-        { icon: <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-emerald-600" />, text: "Verify authenticity of Biostimulant Products" },
-        { icon: <AlertTriangle className="h-5 w-5 md:h-6 md:w-6 text-amber-500" />, text: "Prevent fake and duplicate products" },
-        { icon: <Search className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />, text: "Provide transparent product information" },
-        { icon: <FileText className="h-5 w-5 md:h-6 md:w-6 text-stone-600" />, text: "Enable farmers to access correct usage details" },
+        { icon: <CheckCircle sx={{ color: '#16a34a' }} />, text: 'Verify authenticity of Biostimulant Products' },
+        { icon: <WarningAmber sx={{ color: '#f59e0b' }} />, text: 'Prevent fake and duplicate products' },
+        { icon: <Search sx={{ color: '#2563eb' }} />, text: 'Provide transparent product information' },
+        { icon: <Article sx={{ color: '#57534e' }} />, text: 'Enable farmers to access correct usage details' },
     ];
 
     return (
-        <section id="compliance" className="py-12 md:py-20 bg-white scroll-mt-24">
-            <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-                {/* Grid switches from 1 column on mobile to 2 columns on medium screens */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 items-center">
-
-                    {/* Left Content Column */}
-                    <div className="text-left">
-                        <h2 className="text-emerald-700 font-bold text-sm md:text-lg mb-2 uppercase tracking-widest">
+        <Box component="section" id="compliance" sx={{ py: { xs: 6, md: 10 }, bgcolor: '#fff' }}>
+            <Container maxWidth="lg">
+                <Grid container spacing={{ xs: 4, md: 8 }} alignItems="center">
+                    <Grid item xs={12} md={6}>
+                        <Typography
+                            variant="overline"
+                            sx={{ color: '#047857', fontWeight: 800, letterSpacing: '0.2em' }}
+                        >
                             Government Mandate
-                        </h2>
-                        <h3 className="text-2xl md:text-4xl font-extrabold text-stone-900 mb-5 leading-tight">
+                        </Typography>
+                        <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f172a', mt: 1, lineHeight: 1.2 }}>
                             Why QR Code on Biostimulant Product Labels?
-                        </h3>
+                        </Typography>
 
-                        <div className="bg-stone-50 border-l-4 border-amber-400 p-5 md:p-6 rounded-r-xl mb-6 shadow-sm">
-                            <p className="text-stone-700 italic text-base md:text-lg leading-relaxed">
-                                "As per the Fertilizer Control Order (FCO), 1985 and the Ministry of Agriculture & Farmers Welfare, Government of India, it is mandatory to print a QR Code on biostimulant product labels."
-                            </p>
-                        </div>
+                        <Card
+                            variant="outlined"
+                            sx={{
+                                mt: 3,
+                                p: { xs: 2.5, md: 3 },
+                                borderLeft: '4px solid #f59e0b',
+                                bgcolor: '#fafaf9',
+                            }}
+                        >
+                            <Typography sx={{ color: '#44403c', fontStyle: 'italic', lineHeight: 1.7 }}>
+                                "As per the Fertilizer Control Order (FCO), 1985 and the Ministry of Agriculture & Farmers Welfare,
+                                Government of India, it is mandatory to print a QR Code on biostimulant product labels."
+                            </Typography>
+                        </Card>
 
-                        <p className="text-stone-600 text-sm md:text-base leading-relaxed">
-                            <span className="font-semibold text-emerald-800">apnaQR</span> is developed specifically to support these Government requirements in a simple, reliable, and cost-effective way for manufacturers across India.
-                        </p>
-                    </div>
+                        <Typography sx={{ color: '#64748b', mt: 3 }}>
+                            <Box component="span" sx={{ fontWeight: 700, color: '#065f46' }}>apnaQR</Box> is developed specifically to
+                            support these Government requirements in a simple, reliable, and cost-effective way for manufacturers across India.
+                        </Typography>
+                    </Grid>
 
-                    {/* Right Card Column */}
-                    <div className="bg-emerald-50 rounded-3xl p-6 md:p-8 border border-emerald-100 shadow-sm">
-                        <h4 className="text-lg md:text-xl font-bold text-stone-900 mb-6 border-b border-emerald-200 pb-4">
-                            Key Objectives of the Mandate
-                        </h4>
-                        <div className="space-y-5">
-                            {purposes.map((item, index) => (
-                                <div key={index} className="flex items-start group">
-                                    <div className="flex-shrink-0 mt-1 p-1 bg-white rounded-lg shadow-sm">
-                                        {item.icon}
-                                    </div>
-                                    <p className="ml-4 text-base md:text-lg text-stone-700 font-medium leading-snug">
-                                        {item.text}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
+                    <Grid item xs={12} md={6}>
+                        <Card
+                            sx={{
+                                p: { xs: 3, md: 4 },
+                                borderRadius: 4,
+                                border: '1px solid #d1fae5',
+                                bgcolor: '#ecfdf5',
+                                boxShadow: '0 10px 30px rgba(2, 44, 34, 0.08)',
+                            }}
+                        >
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
+                                Key Objectives of the Mandate
+                            </Typography>
+                            <Stack spacing={2.5}>
+                                {purposes.map((item, index) => (
+                                    <Stack key={index} direction="row" spacing={2} alignItems="flex-start">
+                                        <Box
+                                            sx={{
+                                                bgcolor: '#fff',
+                                                p: 1,
+                                                borderRadius: 2,
+                                                boxShadow: '0 6px 16px rgba(15, 23, 42, 0.08)',
+                                            }}
+                                        >
+                                            {item.icon}
+                                        </Box>
+                                        <Typography sx={{ color: '#334155', fontWeight: 600, lineHeight: 1.5 }}>
+                                            {item.text}
+                                        </Typography>
+                                    </Stack>
+                                ))}
+                            </Stack>
+                        </Card>
+                    </Grid>
+                </Grid>
+            </Container>
+        </Box>
     );
 };
 

@@ -1,5 +1,13 @@
 import React from 'react';
-import { ShieldCheck, Zap, LayoutDashboard, BadgeIndianRupee, ThumbsUp, Users } from 'lucide-react';
+import { Box, Card, Container, Grid, Stack, Typography } from '@mui/material';
+import {
+    Shield,
+    FlashOn,
+    Dashboard,
+    CurrencyRupee,
+    ThumbUp,
+    Groups,
+} from '@mui/icons-material';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const Benefits: React.FC = () => {
@@ -11,66 +19,106 @@ const Benefits: React.FC = () => {
     ];
 
     const benefits = [
-        { icon: <ShieldCheck className="h-6 w-6" />, title: "Govt Compliant", desc: "Designed strictly as per FCO 1985 guidelines." },
-        { icon: <Zap className="h-6 w-6" />, title: "Easy Generation", desc: "Generate thousands of QRs in seconds." },
-        { icon: <LayoutDashboard className="h-6 w-6" />, title: "Single Dashboard", desc: "Manage multiple products from one place." },
-        { icon: <Users className="h-6 w-6" />, title: "Farmer Trust", desc: "Builds confidence with transparent data." },
-        { icon: <BadgeIndianRupee className="h-6 w-6" />, title: "Cost Effective", desc: "Affordable plans for all manufacturer sizes." },
-        { icon: <ThumbsUp className="h-6 w-6" />, title: "Brand Safety", desc: "Prevents counterfeit and duplicate products." },
+        { icon: <Shield fontSize="small" />, title: 'Govt Compliant', desc: 'Designed strictly as per FCO 1985 guidelines.' },
+        { icon: <FlashOn fontSize="small" />, title: 'Easy Generation', desc: 'Generate thousands of QRs in seconds.' },
+        { icon: <Dashboard fontSize="small" />, title: 'Single Dashboard', desc: 'Manage multiple products from one place.' },
+        { icon: <Groups fontSize="small" />, title: 'Farmer Trust', desc: 'Builds confidence with transparent data.' },
+        { icon: <CurrencyRupee fontSize="small" />, title: 'Cost Effective', desc: 'Affordable plans for all manufacturer sizes.' },
+        { icon: <ThumbUp fontSize="small" />, title: 'Brand Safety', desc: 'Prevents counterfeit and duplicate products.' },
     ];
 
     return (
-        <section id="benefits" className="py-20 bg-stone-50 scroll-mt-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Why Choose apnaQR?</h2>
-                    <p className="text-stone-600 max-w-2xl mx-auto">
+        <Box component="section" id="benefits" sx={{ py: { xs: 8, md: 12 }, bgcolor: '#f8fafc' }}>
+            <Container maxWidth="lg">
+                <Box textAlign="center" mb={{ xs: 5, md: 8 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                        Why Choose apnaQR?
+                    </Typography>
+                    <Typography sx={{ color: '#64748b', mt: 2, maxWidth: 680, mx: 'auto' }}>
                         The preferred choice for agri-input manufacturers across India for compliance and digital growth.
-                    </p>
-                </div>
+                    </Typography>
+                </Box>
 
-                <div className="grid lg:grid-cols-3 gap-8">
-                    {/* Chart Card - Simulating Trust/Growth */}
-                    <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-md border border-stone-200">
-                        <h3 className="text-xl font-bold text-stone-900 mb-2">Rising Farmer Trust</h3>
-                        <p className="text-sm text-stone-500 mb-6">Adoption of verified QR codes leads to higher brand engagement.</p>
-                        <div className="h-64 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={data}>
-                                    <XAxis dataKey="name" stroke="#78716c" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis hide />
-                                    <Tooltip
-                                        cursor={{ fill: '#f5f5f4' }}
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                    />
-                                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                        {data.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={index === 3 ? '#166534' : '#86efac'} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <p className="text-xs text-center text-stone-400 mt-4">*Illustrative data representation</p>
-                    </div>
+                <Grid container spacing={{ xs: 3, md: 4 }}>
+                    <Grid item xs={12} lg={4}>
+                        <Card
+                            sx={{
+                                p: 3,
+                                borderRadius: 3,
+                                border: '1px solid #e2e8f0',
+                                boxShadow: '0 10px 24px rgba(15, 23, 42, 0.06)',
+                                height: '100%',
+                            }}
+                        >
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                                Rising Farmer Trust
+                            </Typography>
+                            <Typography sx={{ color: '#64748b', fontSize: 14, mt: 0.5, mb: 3 }}>
+                                Adoption of verified QR codes leads to higher brand engagement.
+                            </Typography>
+                            <Box sx={{ height: 240 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={data}>
+                                        <XAxis dataKey="name" stroke="#78716c" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis hide />
+                                        <Tooltip
+                                            cursor={{ fill: '#f1f5f9' }}
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        />
+                                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                            {data.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={index === 3 ? '#065f46' : '#86efac'} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </Box>
+                            <Typography sx={{ color: '#94a3b8', fontSize: 12, textAlign: 'center', mt: 2 }}>
+                                *Illustrative data representation
+                            </Typography>
+                        </Card>
+                    </Grid>
 
-                    {/* Benefits Grid */}
-                    <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
-                        {benefits.map((item, index) => (
-                            <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition-shadow flex items-start gap-4">
-                                <div className="flex-shrink-0 bg-emerald-50 p-3 rounded-lg text-brand-green">
-                                    {item.icon}
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-stone-900 text-lg mb-1">{item.title}</h4>
-                                    <p className="text-stone-600 text-sm">{item.desc}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </section>
+                    <Grid item xs={12} lg={8}>
+                        <Grid container spacing={{ xs: 2, md: 3 }}>
+                            {benefits.map((item) => (
+                                <Grid key={item.title} item xs={12} sm={6}>
+                                    <Card
+                                        sx={{
+                                            p: 2.5,
+                                            borderRadius: 3,
+                                            border: '1px solid #e2e8f0',
+                                            boxShadow: '0 6px 16px rgba(15, 23, 42, 0.06)',
+                                            height: '100%',
+                                        }}
+                                    >
+                                        <Stack direction="row" spacing={2} alignItems="flex-start">
+                                            <Box
+                                                sx={{
+                                                    bgcolor: '#ecfdf5',
+                                                    color: '#047857',
+                                                    p: 1.2,
+                                                    borderRadius: 2,
+                                                    display: 'inline-flex',
+                                                }}
+                                            >
+                                                {item.icon}
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+                                                    {item.title}
+                                                </Typography>
+                                                <Typography sx={{ color: '#64748b', fontSize: 14 }}>{item.desc}</Typography>
+                                            </Box>
+                                        </Stack>
+                                    </Card>
+                                </Grid>
+                            ))}
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Container>
+        </Box>
     );
 };
 

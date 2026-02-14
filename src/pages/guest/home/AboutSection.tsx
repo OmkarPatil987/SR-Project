@@ -1,75 +1,85 @@
 import React from 'react';
-import { Factory, Landmark, Sprout, Quote } from 'lucide-react';
+import { Box, Card, Container, Grid, Stack, Typography } from '@mui/material';
+import { Factory, AccountBalance, Spa, FormatQuote } from '@mui/icons-material';
 
 const AboutSection: React.FC = () => {
     return (
-        /* Section with a soft green shade background */
-        <section className="py-20 bg-emerald-50/50">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <Box component="section" sx={{ py: { xs: 8, md: 12 }, bgcolor: 'rgba(16, 185, 129, 0.08)' }}>
+            <Container maxWidth="md">
+                <Box textAlign="center" mb={{ xs: 5, md: 7 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                        About <Box component="span" sx={{ color: '#047857' }}>apnaQR</Box>
+                    </Typography>
+                    <Box sx={{ width: 80, height: 6, bgcolor: '#10b981', borderRadius: 999, mx: 'auto', mt: 2 }} />
+                </Box>
 
-                {/* Header with Emerald accent */}
-                <div className="mb-12">
-                    <h2 className="text-3xl md:text-4xl font-black text-stone-900 mb-4">
-                        About <span className="text-emerald-700">apnaQR</span>
-                    </h2>
-                    <div className="h-1.5 w-20 bg-emerald-600 mx-auto rounded-full"></div>
-                </div>
+                <Typography sx={{ color: '#334155', fontSize: { xs: 16, md: 18 }, textAlign: 'center', mb: 6 }}>
+                    <Box component="span" sx={{ fontWeight: 800, color: '#047857' }}>apnaQR</Box> is a dedicated QR Code generation platform developed with a singular focus: to support agri-product manufacturers in meeting the strict compliance standards of the
+                    <Box component="span" sx={{ fontWeight: 700, bgcolor: '#d1fae5', color: '#047857', px: 1, borderRadius: 1, ml: 0.5 }}>
+                        Fertilizer Control Order (FCO) 1985
+                    </Box>.
+                </Typography>
 
-                <div className="max-w-4xl mx-auto">
-                    {/* Main description paragraph */}
-                    <p className="text-lg md:text-xl text-stone-700 leading-relaxed mb-12">
-                        <span className="font-bold text-emerald-700">apnaQR</span> is a dedicated QR Code generation platform developed with a singular focus: to support agri-product manufacturers in meeting the strict compliance standards of the
-                        <span className="font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded ml-1">Fertilizer Control Order (FCO) 1985</span>.
-                    </p>
+                <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: 6 }}>
+                    {[
+                        { icon: <Factory />, title: 'Manufacturers', desc: 'Empowering brands with digital tools for seamless data management.' },
+                        { icon: <AccountBalance />, title: 'Government', desc: 'Ensuring regulatory compliance and transparent audit trails.' },
+                        { icon: <Spa />, title: 'Farmers', desc: 'Providing clear usage knowledge and product authenticity.' },
+                    ].map((item) => (
+                        <Grid key={item.title} item xs={12} md={4}>
+                            <Card
+                                sx={{
+                                    p: 3,
+                                    borderRadius: 3,
+                                    border: '1px solid #d1fae5',
+                                    boxShadow: '0 8px 18px rgba(15, 23, 42, 0.06)',
+                                    textAlign: 'center',
+                                    height: '100%',
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        width: 56,
+                                        height: 56,
+                                        bgcolor: '#d1fae5',
+                                        color: '#047857',
+                                        borderRadius: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        mx: 'auto',
+                                        mb: 2,
+                                    }}
+                                >
+                                    {item.icon}
+                                </Box>
+                                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                                    {item.title}
+                                </Typography>
+                                <Typography sx={{ color: '#64748b', fontSize: 14 }}>{item.desc}</Typography>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
 
-                    {/* Feature Cards Grid */}
-                    <div className="grid md:grid-cols-3 gap-6 mb-16">
-                        {/* Card 1: Manufacturers */}
-                        <div className="p-8 bg-white rounded-2xl shadow-sm border border-emerald-100 hover:shadow-md transition-shadow group text-center">
-                            <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-600 transition-colors">
-                                <Factory className="h-7 w-7 text-emerald-700 group-hover:text-white" />
-                            </div>
-                            <h3 className="font-bold text-lg text-stone-900 mb-2">Manufacturers</h3>
-                            <p className="text-sm text-stone-600 leading-relaxed">
-                                Empowering brands with digital tools for seamless data management.
-                            </p>
-                        </div>
-
-                        {/* Card 2: Government */}
-                        <div className="p-8 bg-white rounded-2xl shadow-sm border border-emerald-100 hover:shadow-md transition-shadow group text-center">
-                            <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-600 transition-colors">
-                                <Landmark className="h-7 w-7 text-emerald-700 group-hover:text-white" />
-                            </div>
-                            <h3 className="font-bold text-lg text-stone-900 mb-2">Government</h3>
-                            <p className="text-sm text-stone-600 leading-relaxed">
-                                Ensuring regulatory compliance and transparent audit trails.
-                            </p>
-                        </div>
-
-                        {/* Card 3: Farmers */}
-                        <div className="p-8 bg-white rounded-2xl shadow-sm border border-emerald-100 hover:shadow-md transition-shadow group text-center">
-                            <div className="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-emerald-600 transition-colors">
-                                <Sprout className="h-7 w-7 text-emerald-700 group-hover:text-white" />
-                            </div>
-                            <h3 className="font-bold text-lg text-stone-900 mb-2">Farmers</h3>
-                            <p className="text-sm text-stone-600 leading-relaxed">
-                                Providing clear usage knowledge and product authenticity.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Motivational Quote Section */}
-                    <div className="relative p-10 bg-emerald-700 rounded-3xl overflow-hidden shadow-xl">
-                        {/* Decorative Quote Icon */}
-                        <Quote className="absolute -top-4 -left-4 h-24 w-24 text-white/10" />
-
-                        <p className="relative z-10 font-bold text-xl md:text-2xl text-white italic leading-snug">
-                            "Our goal is to create a trusted digital bridge between manufacturers, Government authorities, and farmers."
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
+                <Card
+                    sx={{
+                        p: { xs: 3, md: 4 },
+                        borderRadius: 4,
+                        bgcolor: '#047857',
+                        color: '#fff',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        boxShadow: '0 16px 36px rgba(4, 120, 87, 0.3)',
+                    }}
+                >
+                    <FormatQuote sx={{ position: 'absolute', top: -10, left: -10, fontSize: 90, color: 'rgba(255,255,255,0.12)' }} />
+                    <Typography sx={{ position: 'relative', fontWeight: 800, fontStyle: 'italic', fontSize: { xs: 18, md: 22 } }}>
+                        "Our goal is to create a trusted digital bridge between manufacturers, Government authorities, and farmers."
+                    </Typography>
+                </Card>
+            </Container>
+        </Box>
     );
 };
 

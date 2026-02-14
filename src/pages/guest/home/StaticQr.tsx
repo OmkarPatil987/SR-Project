@@ -1,71 +1,140 @@
 import React from 'react';
-import { Lock, FileCheck, Sprout, FlaskConical, Calendar } from 'lucide-react';
+import { Box, Button, Card, Container, Grid, Stack, Typography } from '@mui/material';
+import {
+    Lock,
+    Gavel,
+    Spa,
+    Science,
+} from '@mui/icons-material';
 
 const StaticQr: React.FC = () => {
     return (
-        <section id="static-qr" className="py-20 bg-stone-50 border-t border-stone-200 scroll-mt-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <div className="inline-flex items-center justify-center p-3 bg-stone-200 rounded-full mb-4">
-                        <Lock className="h-6 w-6 text-stone-700" />
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-stone-900">Static QR Code by apnaQR</h2>
-                    <p className="mt-4 text-xl text-stone-600 max-w-3xl mx-auto">
+        <Box component="section" id="static-qr" sx={{ py: { xs: 8, md: 12 }, bgcolor: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+            <Container maxWidth="lg">
+                <Box textAlign="center" mb={{ xs: 6, md: 8 }}>
+                    <Box
+                        sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: '#e2e8f0',
+                            borderRadius: '999px',
+                            p: 1.5,
+                            mb: 2,
+                        }}
+                    >
+                        <Lock sx={{ color: '#475569' }} />
+                    </Box>
+                    <Typography variant="h3" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                        Static QR Code by apnaQR
+                    </Typography>
+                    <Typography sx={{ mt: 2, color: '#64748b', maxWidth: 760, mx: 'auto' }}>
                         Mandatory for Government compliance. Contains fixed information that cannot be changed once generated.
-                    </p>
-                </div>
+                    </Typography>
+                </Box>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {/* Card 1 */}
-                    <div className="bg-white p-8 rounded-xl shadow-md border border-stone-100 hover:border-brand-green transition-all group">
-                        <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand-green transition-colors">
-                            <FileCheck className="h-6 w-6 text-brand-green group-hover:text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-stone-900 mb-3">Govt Notification</h3>
-                        <p className="text-stone-600">Displays the Gazette Notification Number & Date as required by verification authorities.</p>
-                    </div>
+                <Grid container spacing={{ xs: 3, md: 4 }}>
+                    {[
+                        {
+                            icon: <Gavel sx={{ color: '#047857' }} />,
+                            title: 'Govt Notification',
+                            desc: 'Displays the Gazette Notification Number & Date as required by verification authorities.',
+                        },
+                        {
+                            icon: <Spa sx={{ color: '#047857' }} />,
+                            title: 'Product Details',
+                            desc: 'Encodes the Title of the Biostimulant and specific Crops it is intended for.',
+                        },
+                        {
+                            icon: <Science sx={{ color: '#047857' }} />,
+                            title: 'Composition & Dosage',
+                            desc: 'Permanent record of chemical composition and recommended dosage instructions.',
+                        },
+                    ].map((item) => (
+                        <Grid key={item.title} item xs={12} md={6} lg={4}>
+                            <Card
+                                sx={{
+                                    p: 3,
+                                    height: '100%',
+                                    borderRadius: 3,
+                                    border: '1px solid #e2e8f0',
+                                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.06)',
+                                    transition: 'transform 200ms ease, box-shadow 200ms ease',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.12)',
+                                    },
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: 2,
+                                        bgcolor: '#dcfce7',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        mb: 2,
+                                    }}
+                                >
+                                    {item.icon}
+                                </Box>
+                                <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, color: '#0f172a' }}>
+                                    {item.title}
+                                </Typography>
+                                <Typography sx={{ color: '#64748b' }}>{item.desc}</Typography>
+                            </Card>
+                        </Grid>
+                    ))}
+                </Grid>
 
-                    {/* Card 2 */}
-                    <div className="bg-white p-8 rounded-xl shadow-md border border-stone-100 hover:border-brand-green transition-all group">
-                        <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand-green transition-colors">
-                            <Sprout className="h-6 w-6 text-brand-green group-hover:text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-stone-900 mb-3">Product Details</h3>
-                        <p className="text-stone-600">Encodes the Title of the Biostimulant and specific Crops it is intended for.</p>
-                    </div>
+                <Card
+                    sx={{
+                        mt: { xs: 5, md: 7 },
+                        p: { xs: 2.5, md: 3 },
+                        borderRadius: 3,
+                        bgcolor: '#fffbeb',
+                        border: '1px solid #fde68a',
+                        maxWidth: 900,
+                        mx: 'auto',
+                    }}
+                >
+                    <Stack direction="row" spacing={2} alignItems="flex-start">
+                        <Box sx={{ p: 1, bgcolor: '#fef3c7', borderRadius: '999px' }}>
+                            <Lock sx={{ color: '#b45309' }} />
+                        </Box>
+                        <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: '#92400e' }}>
+                                Important Note
+                            </Typography>
+                            <Typography sx={{ color: '#92400e' }}>
+                                Once generated, Static QR data is permanent and cannot be edited. It serves as a digital seal of authenticity
+                                for Government inspectors and farmers.
+                            </Typography>
+                        </Box>
+                    </Stack>
+                </Card>
 
-                    {/* Card 3 */}
-                    <div className="bg-white p-8 rounded-xl shadow-md border border-stone-100 hover:border-brand-green transition-all group">
-                        <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-6 group-hover:bg-brand-green transition-colors">
-                            <FlaskConical className="h-6 w-6 text-brand-green group-hover:text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-stone-900 mb-3">Composition & Dosage</h3>
-                        <p className="text-stone-600">Permanent record of chemical composition and recommended dosage instructions.</p>
-                    </div>
-                </div>
-
-                <div className="mt-12 bg-amber-50 border border-amber-200 rounded-lg p-6 flex items-start gap-4 max-w-4xl mx-auto">
-                    <div className="p-2 bg-amber-100 rounded-full flex-shrink-0">
-                        <Lock className="h-5 w-5 text-amber-700" />
-                    </div>
-                    <div>
-                        <h4 className="text-amber-900 font-bold text-lg">Important Note</h4>
-                        <p className="text-amber-800">
-                            Once generated, Static QR data is permanent and cannot be edited. It serves as a digital seal of authenticity for Government inspectors and farmers.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="mt-10 flex justify-center">
-                    <a
+                <Box sx={{ mt: 5, display: 'flex', justifyContent: 'center' }}>
+                    <Button
                         href="/faq/static"
-                        className="inline-flex items-center justify-center bg-emerald-700 text-white px-6 py-3 rounded-lg font-bold text-base hover:bg-emerald-800 transition-colors"
+                        variant="contained"
+                        sx={{
+                            bgcolor: '#047857',
+                            '&:hover': { bgcolor: '#065f46' },
+                            px: 4,
+                            py: 1.5,
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 700,
+                        }}
                     >
                         Have more questions? See Static FAQs
-                    </a>
-                </div>
-            </div>
-        </section>
+                    </Button>
+                </Box>
+            </Container>
+        </Box>
     );
 };
 
