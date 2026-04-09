@@ -10,13 +10,14 @@ import {
 } from "@mui/material";
 import {
     Add, FileDownload, Visibility, ContentCopy,
-    Business, Inventory2, RestartAlt, QrCode2, Close
+    Business, Inventory2, RestartAlt, QrCode2, Close, Layers
 } from "@mui/icons-material";
 import { jsPDF } from "jspdf";
 import { RootState } from "../../../redux/store";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import { resetRefresh } from "../../../redux/reducer/refreshSlice";
 import { FetchQRListService, FetchProductListService, FetchCompanyListService } from "../../../utils/services/product.service";
+import { PRODUCT_CATEGORY_OPTIONS } from "../../../utils/productCategory";
 
 export const loadImageAsBase64 = async (url: string): Promise<string> => {
     try {
@@ -53,10 +54,15 @@ const StaticQRList: React.FC = () => {
     const [payload, setPayload] = useState({
         offset: 0,
         limit: 10,
-        company_uuid: "",
-        product_master_uuid: "",
+        company_uuid: null as string | null,
+        product_master_uuid: null as string | null,
+        category: null as string | null,
         type: "static",
     });
+
+    const filteredProducts = payload.category
+        ? products.filter((product) => product.category === payload.category)
+        : products;
 
     const fetchFilterData = useCallback(async () => {
         try {
@@ -126,7 +132,7 @@ const StaticQRList: React.FC = () => {
     };
 
     const resetFilters = () => {
-        setPayload(p => ({ ...p, company_uuid: "", product_master_uuid: "", offset: 0 }));
+        setPayload(p => ({ ...p, company_uuid: null, product_master_uuid: null, category: null, offset: 0 }));
     };
 
     return (
@@ -152,8 +158,8 @@ const StaticQRList: React.FC = () => {
                         <InputLabel>Company</InputLabel>
                         <Select
                             label="Company"
-                            value={payload.company_uuid}
-                            onChange={(e) => setPayload(p => ({ ...p, company_uuid: e.target.value, offset: 0 }))}
+                            value={payload.company_uuid ?? ""}
+                            onChange={(e) => setPayload(p => ({ ...p, company_uuid: e.target.value || null, offset: 0 }))}
                             startAdornment={<Business sx={{ mr: 1, color: '#13ae47' }} fontSize="small" />}
                         >
                             <MenuItem value="">All Companies</MenuItem>
@@ -164,15 +170,30 @@ const StaticQRList: React.FC = () => {
                     </FormControl>
 
                     <FormControl size="small" sx={{ minWidth: 220 }}>
+                        <InputLabel>Category</InputLabel>
+                        <Select
+                            label="Category"
+                            value={payload.category ?? ""}
+                            onChange={(e) => setPayload(p => ({ ...p, category: e.target.value || null, product_master_uuid: null, offset: 0 }))}
+                            startAdornment={<Layers sx={{ mr: 1, color: '#13ae47' }} fontSize="small" />}
+                        >
+                            <MenuItem value="">All Categories</MenuItem>
+                            {PRODUCT_CATEGORY_OPTIONS.map((category) => (
+                                <MenuItem key={category.value} value={category.value}>{category.label}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="small" sx={{ minWidth: 220 }}>
                         <InputLabel>Product</InputLabel>
                         <Select
                             label="Product"
-                            value={payload.product_master_uuid}
-                            onChange={(e) => setPayload(p => ({ ...p, product_master_uuid: e.target.value, offset: 0 }))}
+                            value={payload.product_master_uuid ?? ""}
+                            onChange={(e) => setPayload(p => ({ ...p, product_master_uuid: e.target.value || null, offset: 0 }))}
                             startAdornment={<Inventory2 sx={{ mr: 1, color: '#13ae47' }} fontSize="small" />}
                         >
                             <MenuItem value="">All Products</MenuItem>
-                            {products.map((p) => (
+                            {filteredProducts.map((p) => (
                                 <MenuItem key={p.uuid} value={p.uuid}>{p.name}</MenuItem>
                             ))}
                         </Select>

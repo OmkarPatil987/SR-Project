@@ -12,7 +12,6 @@ import {
 import {
     Security,
     Description,
-    QrCodeScanner,
     Domain,
     History
 } from '@mui/icons-material';
@@ -21,6 +20,7 @@ import { useDispatch } from 'react-redux';
 import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
 import { GuestProductDetailsService } from '../../../utils/services/guest.service';
 import dayjs from 'dayjs';
+import { getProductCategoryLabel, getProductCategorySingularLabel } from '../../../utils/productCategory';
 
 // --- Interfaces based on new API structure ---
 interface QRData {
@@ -118,6 +118,8 @@ const GuestProductDetail: React.FC = () => {
     const qrType = (qr.qr_type || '').toLowerCase();
     const isStatic = qrType.includes('static');
     const isDynamic = qrType.includes('dynamic');
+    const categorySingularLabel = getProductCategorySingularLabel(product_master.category);
+    const categoryLabel = getProductCategoryLabel(product_master.category);
 
     const gazetteDate = product_detail.gazette_notification_date
         ? dayjs(product_detail.gazette_notification_date).format('MMM DD, YYYY')
@@ -129,11 +131,11 @@ const GuestProductDetail: React.FC = () => {
             value: `${product_detail.gazette_notification_number || '-'} | ${gazetteDate}`,
         },
         {
-            label: 'Title of Biostimulant',
+            label: `Title of ${categorySingularLabel}`,
             value: product_detail.biostimulant_title || product_master.name || '-',
         },
         {
-            label: 'Composition of Biostimulant',
+            label: `Composition of ${categorySingularLabel}`,
             value: product_detail.biostimulant_composition || '-',
         },
         {
@@ -185,7 +187,7 @@ const GuestProductDetail: React.FC = () => {
     const otherDetails = [
         {
             label: 'Category',
-            value: product_master.category || '-',
+            value: categoryLabel,
         },
         {
             label: 'Sub-category',

@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import {
     ArrowBack, InfoOutlined, GavelOutlined,
-    ChevronRight, Sync, QrCode2, Layers
+    ChevronRight, Sync, QrCode2
 } from "@mui/icons-material";
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -23,6 +23,7 @@ import { useDispatch } from "react-redux";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import PageHead from "../../../components/common/page/PageHead";
 import { FetchProductListService, FetchQRDetailsService, StoreQRService, UpdateQRService } from "../../../utils/services/product.service";
+import { getProductCategorySingularLabel } from "../../../utils/productCategory";
 
 interface FormValues {
     product_master_uuid: string;
@@ -141,7 +142,7 @@ const QRForm: React.FC = () => {
             } finally { setLoading(false); }
         };
         fetchInitialData();
-    }, [isEdit, uuid]);
+    }, [isEdit, qrUuidParam, uuid]);
 
     const handleSubmit = async (values: FormValues, { setSubmitting }: FormikHelpers<FormValues>) => {
         const payload = {
@@ -193,8 +194,12 @@ const QRForm: React.FC = () => {
                 </Box>
 
                 <Formik initialValues={initialValues} validationSchema={qrValidationSchema} onSubmit={handleSubmit} enableReinitialize>
-                    {({ values, errors, touched, handleChange, setFieldValue, isSubmitting }) => (
-                        <Form>
+                    {({ values, errors, touched, handleChange, setFieldValue, isSubmitting }) => {
+                        const selectedProduct = products.find((product) => product.uuid === values.product_master_uuid);
+                        const categoryLabel = getProductCategorySingularLabel(selectedProduct?.category);
+
+                        return (
+                            <Form>
                             {/* QR Type Toggle */}
                             <Box sx={{ mb: 4 }}>
                                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#888', textTransform: 'uppercase', mb: 1.5, display: 'block', letterSpacing: 1 }}>
@@ -339,7 +344,7 @@ const QRForm: React.FC = () => {
                                             />
                                         </Grid>
                                         <Grid item xs={12}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Biostimulant Title</Typography>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>{categoryLabel} Title</Typography>
                                             <TextField
                                                 fullWidth name="biostimulant_title"
                                                 placeholder="Enter official title..."
@@ -348,7 +353,7 @@ const QRForm: React.FC = () => {
                                             />
                                         </Grid>
                                         <Grid item xs={12}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Chemical Composition (%)</Typography>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Composition of {categoryLabel}</Typography>
                                             <TextField
                                                 fullWidth multiline rows={3}
                                                 name="biostimulant_composition"
@@ -394,8 +399,9 @@ const QRForm: React.FC = () => {
                                     </Button>
                                 </Box>
                             </Card>
-                        </Form>
-                    )}
+                            </Form>
+                        );
+                    }}
                 </Formik>
             </Box>
         </LocalizationProvider>

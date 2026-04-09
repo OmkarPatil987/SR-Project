@@ -16,6 +16,7 @@ import { FetchProductDetailsService } from '../../../../utils/services/product.s
 import { BaseUrls } from '../../../../utils/base-urls';
 import { jsPDF } from "jspdf";
 import { loadImageAsBase64 } from '../../qr/StaticList';
+import { getProductCategoryLabel } from '../../../../utils/productCategory';
 
 const S3_URL = BaseUrls.S3_BASE_URL.url;
 const ITEMS_PER_PAGE = 6;
@@ -196,7 +197,7 @@ const ProductDetail: React.FC = () => {
                         </Grid>
                         <Grid item xs={12} sm={3}>
                             <Typography sx={{ color: '#4c9a74', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', mb: 1, letterSpacing: '0.05em' }}>Category</Typography>
-                            <Typography sx={{ color: '#0d1b15', fontWeight: 700, fontSize: '16px' }}>{product.category || 'Omkar Patil'}</Typography>
+                            <Typography sx={{ color: '#0d1b15', fontWeight: 700, fontSize: '16px' }}>{getProductCategoryLabel(product.category)}</Typography>
                         </Grid>
                         <Grid item xs={12} sm={3}>
                             <Typography sx={{ color: '#4c9a74', fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', mb: 1, letterSpacing: '0.05em' }}>Sub-Category</Typography>

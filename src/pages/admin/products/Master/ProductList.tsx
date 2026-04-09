@@ -36,7 +36,7 @@ const ProductList: React.FC = () => {
         offset: 0,
         limit: 15,
         search: "",
-        category: "",
+        category: null,
         status: "all",
     });
 

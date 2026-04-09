@@ -18,6 +18,8 @@ import { useDispatch } from 'react-redux';
 import { showSnackbar } from '../../../../redux/reducer/snackbarSlice';
 import { StoreProductService, FetchProductDetailsService, UpdateProductService, FetchCompanyListService } from '../../../../utils/services/product.service';
 import Autocomplete from '@mui/material/Autocomplete';
+import { MenuItem } from '@mui/material';
+import { PRODUCT_CATEGORY_OPTIONS, getProductCategoryLabel } from '../../../../utils/productCategory';
 
 interface FormValues {
     company_id: number | null;
@@ -96,7 +98,7 @@ const ProductForm: React.FC = () => {
                             company_id: data.company_id,
                             name: data.product_name || '',
                             description: data.description || '',
-                            category: data.category || '',
+                            category: getProductCategoryLabel(data.category) === '-' ? '' : getProductCategoryLabel(data.category),
                             sub_category: data.sub_category || '',
                         });
                     }
@@ -188,24 +190,35 @@ const ProductForm: React.FC = () => {
                             />
                         </Grid>
 
-                        {/* Category (Changed to TextField) */}
+                        {/* Category */}
                         <Grid item xs={12} md={6}>
                             <Typography variant="body2" sx={{ fontWeight: 800, mb: 1, color: '#0d1b15' }}>
                                 Category <span style={{ color: '#ef4444' }}>*</span>
                             </Typography>
                             <TextField
                                 fullWidth
+                                select
                                 name="category"
-                                placeholder="e.g. Fertilizers"
                                 value={formik.values.category}
                                 onChange={formik.handleChange}
                                 error={formik.touched.category && Boolean(formik.errors.category)}
                                 helperText={formik.touched.category && formik.errors.category}
+                                SelectProps={{ displayEmpty: true }}
+                                placeholder="Select category"
                                 sx={{
                                     '& .MuiOutlinedInput-root': { bgcolor: '#f6f8f7', border: 'none' },
                                     '& fieldset': { border: 'none' }
                                 }}
-                            />
+                            >
+                                <MenuItem value="" disabled>
+                                    Select category
+                                </MenuItem>
+                                {PRODUCT_CATEGORY_OPTIONS.map((option) => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Grid>
 
                         {/* Sub Category */}
