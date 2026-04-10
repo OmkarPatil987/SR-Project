@@ -37,6 +37,7 @@ interface FormValues {
     city: string;
     pincode: string;
     address: string;
+    license_no: string;
     gst_no: string;
     pan_no: string;
     bank_account_no: string;
@@ -58,6 +59,7 @@ const companyValidationSchema = Yup.object().shape({
         .matches(/^\d{6}$/, 'Enter a valid 6-digit pincode')
         .required('Pincode is required'),
     address: Yup.string().required('Address is required'),
+    license_no: Yup.string().nullable().notRequired(),
     gst_no: Yup.string()
         .matches(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Enter a valid GST number')
         .nullable()
@@ -87,7 +89,7 @@ const CompanyForm: React.FC = () => {
 
     const [initialValues, setInitialValues] = useState<FormValues>({
         company_name: '', email: '', mobile: '', state: '', city: '',
-        pincode: '', address: '', gst_no: '', pan_no: '',
+        pincode: '', address: '', license_no: '', gst_no: '', pan_no: '',
         bank_account_no: '', bank_ifsc_code: '', referral_name: '', is_active: true,
     });
 
@@ -283,6 +285,19 @@ const CompanyForm: React.FC = () => {
                                     <Typography sx={{ fontSize: '18px', fontWeight: 'bold' }}>Legal & Banking</Typography>
                                 </Box>
                                 <Grid container spacing={3}>
+                                    <Grid item xs={12} md={6}>
+                                        <Typography sx={{ fontSize: '12px', fontWeight: 800, color: '#509567', mb: 1 }}>
+                                            LICENSE NUMBER
+                                        </Typography>
+                                        <TextField
+                                            fullWidth
+                                            size="small"
+                                            name="license_no"
+                                            placeholder="Enter license number"
+                                            value={values.license_no}
+                                            onChange={handleChange}
+                                        />
+                                    </Grid>
                                     <Grid item xs={12} md={6}>
                                         <Typography sx={{ fontSize: '12px', fontWeight: 800, color: '#509567', mb: 1 }}>
                                             GST NUMBER

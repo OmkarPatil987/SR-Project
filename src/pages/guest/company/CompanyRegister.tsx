@@ -46,6 +46,7 @@ interface CompanyRegisterValues {
     city: string;
     pincode: string;
     address: string;
+    license_no: string;
     gst_no: string;
     pan_no: string;
     bank_account_no: string;
@@ -67,6 +68,7 @@ const validationSchema = Yup.object().shape({
         .matches(/^\d{6}$/, 'Enter a valid 6-digit pincode')
         .required('Pincode is required'),
     address: Yup.string().required('Address is required'),
+    license_no: Yup.string().nullable().notRequired(),
     gst_no: Yup.string()
         .matches(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Enter a valid GST number')
         .nullable()
@@ -95,6 +97,7 @@ const initialValues: CompanyRegisterValues = {
     city: '',
     pincode: '',
     address: '',
+    license_no: '',
     gst_no: '',
     pan_no: '',
     bank_account_no: '',
@@ -147,6 +150,7 @@ const CompanyRegister = () => {
                 city: values.city,
                 pincode: values.pincode,
                 address: values.address,
+                license_no: values.license_no,
                 gst_no: values.gst_no,
                 pan_no: values.pan_no,
                 bank_account_no: values.bank_account_no,
@@ -367,6 +371,24 @@ const CompanyRegister = () => {
                             LEGAL & BANKING
                         </Typography>
                         <Grid container spacing={{ xs: 2, md: 3 }}>
+                            <Grid item xs={12} md={6}>
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="License Number"
+                                    name="license_no"
+                                    value={formik.values.license_no}
+                                    onChange={formik.handleChange}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <Badge fontSize="small" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    sx={{ '& .MuiOutlinedInput-root': { bgcolor: '#fff' } }}
+                                />
+                            </Grid>
                             <Grid item xs={12} md={6}>
                                 <TextField
                                     fullWidth

@@ -402,6 +402,7 @@ const CompanyList = () => {
                         <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <BankIcon fontSize="small" color="primary" /> Legal & Banking
                         </Typography>
+                        <DetailItem label="License Number" value={detailsCompany.license_no} />
                         <DetailItem label="GST Number" value={detailsCompany.gst_no} />
                         <DetailItem label="PAN Number" value={detailsCompany.pan_no} />
                         <DetailItem label="Bank Account" value={detailsCompany.bank_account_no} />

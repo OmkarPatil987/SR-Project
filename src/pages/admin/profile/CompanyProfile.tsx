@@ -23,6 +23,7 @@ interface FormValues {
     city: string;
     pincode: string;
     address: string;
+    license_no: string;
     gst_no: string;
     pan_no: string;
     bank_account_no: string;
@@ -38,6 +39,7 @@ const profileValidationSchema = Yup.object().shape({
     city: Yup.string().nullable(),
     pincode: Yup.string().nullable(),
     address: Yup.string().nullable(),
+    license_no: Yup.string().nullable(),
     gst_no: Yup.string().nullable(),
     pan_no: Yup.string().nullable(),
     bank_account_no: Yup.string().nullable(),
@@ -53,6 +55,7 @@ const defaultValues: FormValues = {
     city: '',
     pincode: '',
     address: '',
+    license_no: '',
     gst_no: '',
     pan_no: '',
     bank_account_no: '',
@@ -379,6 +382,27 @@ const CompanyProfile = () => {
                                     <Typography sx={{ fontSize: '18px', fontWeight: 800 }}>Legal & Banking</Typography>
                                 </Stack>
                                 <Grid container spacing={{ xs: 2, md: 3 }}>
+                                    <Grid item xs={12} md={6}>
+                                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                                            <ReceiptLong sx={{ fontSize: 16, color: '#5b8b6b' }} />
+                                            <Typography sx={{ fontSize: '12px', fontWeight: 800, color: '#5b8b6b' }}>LICENSE NUMBER</Typography>
+                                        </Stack>
+                                        {isEditing ? (
+                                            <TextField
+                                                fullWidth
+                                                size="small"
+                                                name="license_no"
+                                                placeholder="Enter license number"
+                                                value={values.license_no}
+                                                onChange={handleChange}
+                                                disabled={!isEditing}
+                                            />
+                                        ) : (
+                                            <Card sx={{ p: 1.5, borderRadius: '12px', bgcolor: '#f7faf8', border: '1px solid #e6efe9' }}>
+                                                <Typography sx={{ fontWeight: 700 }}>{values.license_no || '-'}</Typography>
+                                            </Card>
+                                        )}
+                                    </Grid>
                                     <Grid item xs={12} md={6}>
                                         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
                                             <ReceiptLong sx={{ fontSize: 16, color: '#5b8b6b' }} />

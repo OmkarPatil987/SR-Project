@@ -23,7 +23,7 @@ import { useDispatch } from "react-redux";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import PageHead from "../../../components/common/page/PageHead";
 import { FetchProductListService, FetchQRDetailsService, StoreQRService, UpdateQRService } from "../../../utils/services/product.service";
-import { getProductCategorySingularLabel } from "../../../utils/productCategory";
+import { getProductCategoryLabel, getProductCategorySingularLabel } from "../../../utils/productCategory";
 
 interface FormValues {
     product_master_uuid: string;
@@ -45,8 +45,8 @@ interface FormValues {
 const qrValidationSchema = Yup.object().shape({
     product_master_uuid: Yup.string().required("Product selection is required"),
     company_name: Yup.string().required("Company name is required"),
-    gazette_notification_number: Yup.string().required("Gazette No. is required"),
-    gazette_notification_date: Yup.date().nullable().required("Gazette Date is required"),
+    gazette_notification_number: Yup.string().nullable(),
+    gazette_notification_date: Yup.date().nullable(),
     type: Yup.string().required("QR Type is required"),
     batch_name: Yup.string().when('type', {
         is: 'static',
@@ -144,10 +144,44 @@ const QRForm: React.FC = () => {
         fetchInitialData();
     }, [isEdit, qrUuidParam, uuid]);
 
+    const validateForm = async (values: FormValues) => {
+        const errors: Record<string, string> = {};
+
+        try {
+            await qrValidationSchema.validate(values, { abortEarly: false });
+        } catch (error) {
+            if (error instanceof Yup.ValidationError) {
+                error.inner.forEach((item) => {
+                    if (item.path && !errors[item.path]) {
+                        errors[item.path] = item.message;
+                    }
+                });
+            }
+        }
+
+        const selectedProduct = products.find((product) => product.uuid === values.product_master_uuid);
+        const isBiostimulantCategory = getProductCategoryLabel(selectedProduct?.category) === "Biostimulants";
+
+        if (isBiostimulantCategory) {
+            if (!values.gazette_notification_number?.trim()) {
+                errors.gazette_notification_number = "Gazette No. is required";
+            }
+
+            if (!values.gazette_notification_date) {
+                errors.gazette_notification_date = "Gazette Date is required";
+            }
+        }
+
+        return errors;
+    };
+
     const handleSubmit = async (values: FormValues, { setSubmitting }: FormikHelpers<FormValues>) => {
+        const selectedProduct = products.find((product) => product.uuid === values.product_master_uuid);
+        const isBiostimulantCategory = getProductCategoryLabel(selectedProduct?.category) === "Biostimulants";
         const payload = {
             ...values,
-            gazette_notification_date: values.gazette_notification_date?.format('YYYY-MM-DD'),
+            gazette_notification_number: isBiostimulantCategory ? values.gazette_notification_number : "",
+            gazette_notification_date: isBiostimulantCategory ? values.gazette_notification_date?.format('YYYY-MM-DD') : null,
             manufacturing_date: values.type === 'static' ? values.manufacturing_date?.format('YYYY-MM-DD') : null,
             expiry_date: values.type === 'static' ? values.expiry_date?.format('YYYY-MM-DD') : null,
             batch_name: values.type === 'static' ? values.batch_name : "",
@@ -193,10 +227,11 @@ const QRForm: React.FC = () => {
                     />
                 </Box>
 
-                <Formik initialValues={initialValues} validationSchema={qrValidationSchema} onSubmit={handleSubmit} enableReinitialize>
+                <Formik initialValues={initialValues} validationSchema={qrValidationSchema} validate={validateForm} onSubmit={handleSubmit} enableReinitialize>
                     {({ values, errors, touched, handleChange, setFieldValue, isSubmitting }) => {
                         const selectedProduct = products.find((product) => product.uuid === values.product_master_uuid);
                         const categoryLabel = getProductCategorySingularLabel(selectedProduct?.category);
+                        const isBiostimulantCategory = getProductCategoryLabel(selectedProduct?.category) === "Biostimulants";
 
                         return (
                             <Form>
@@ -324,25 +359,29 @@ const QRForm: React.FC = () => {
                                     </Stack>
 
                                     <Grid container spacing={3}>
-                                        <Grid item xs={12} md={6}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Gazette No.</Typography>
-                                            <TextField
-                                                fullWidth name="gazette_notification_number"
-                                                placeholder="e.g. REG-2024-001"
-                                                value={values.gazette_notification_number} onChange={handleChange}
-                                                error={touched.gazette_notification_number && !!errors.gazette_notification_number}
-                                                helperText={touched.gazette_notification_number && errors.gazette_notification_number}
-                                                sx={inputStyles}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Gazette Date</Typography>
-                                            <DatePicker
-                                                value={values.gazette_notification_date}
-                                                onChange={(val) => setFieldValue("gazette_notification_date", val)}
-                                                slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.gazette_notification_date && !!errors.gazette_notification_date, helperText: touched.gazette_notification_date && (errors.gazette_notification_date as string) } }}
-                                            />
-                                        </Grid>
+                                        {isBiostimulantCategory && (
+                                            <>
+                                                <Grid item xs={12} md={6}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Gazette No.</Typography>
+                                                    <TextField
+                                                        fullWidth name="gazette_notification_number"
+                                                        placeholder="e.g. REG-2024-001"
+                                                        value={values.gazette_notification_number} onChange={handleChange}
+                                                        error={touched.gazette_notification_number && !!errors.gazette_notification_number}
+                                                        helperText={touched.gazette_notification_number && errors.gazette_notification_number}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Gazette Date</Typography>
+                                                    <DatePicker
+                                                        value={values.gazette_notification_date}
+                                                        onChange={(val) => setFieldValue("gazette_notification_date", val)}
+                                                        slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.gazette_notification_date && !!errors.gazette_notification_date, helperText: touched.gazette_notification_date && (errors.gazette_notification_date as string) } }}
+                                                    />
+                                                </Grid>
+                                            </>
+                                        )}
                                         <Grid item xs={12}>
                                             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>{categoryLabel} Title</Typography>
                                             <TextField

@@ -66,6 +66,7 @@ interface Company {
     company_name: string;
     address: string;
     gst_no: string;
+    license_no?: string;
 }
 
 interface ProductDetailsResponse {
@@ -117,87 +118,60 @@ const GuestProductDetail: React.FC = () => {
     const { qr, product_master, product_detail, company } = data;
     const qrType = (qr.qr_type || '').toLowerCase();
     const isStatic = qrType.includes('static');
-    const isDynamic = qrType.includes('dynamic');
     const categorySingularLabel = getProductCategorySingularLabel(product_master.category);
     const categoryLabel = getProductCategoryLabel(product_master.category);
+    const isBiostimulantCategory = categoryLabel === 'Biostimulants';
 
     const gazetteDate = product_detail.gazette_notification_date
         ? dayjs(product_detail.gazette_notification_date).format('MMM DD, YYYY')
-        : '-';
+        : '';
+
+    const createDetailItem = (label: string, value?: string | null) => {
+        if (!value) return null;
+        return { label, value };
+    };
 
     const primaryDetails = [
-        {
-            label: 'Gazette Notification No & Date',
-            value: `${product_detail.gazette_notification_number || '-'} | ${gazetteDate}`,
-        },
-        {
-            label: `Title of ${categorySingularLabel}`,
-            value: product_detail.biostimulant_title || product_master.name || '-',
-        },
-        {
-            label: `Composition of ${categorySingularLabel}`,
-            value: product_detail.biostimulant_composition || '-',
-        },
-        {
-            label: 'Crops',
-            value: product_detail.crops || '-',
-        },
-        {
-            label: 'Dosage',
-            value: product_detail.doses || '-',
-        },
-        {
-            label: 'Application method',
-            value: product_detail.application_method || '-',
-        },
-        {
-            label: 'Manufacturer details',
-            value: product_detail.manufacturer_details || '-',
-        },
-        ...(isDynamic
-            ? [
-                {
-                    label: 'Product Details - Description',
-                    value: product_master.description || '-',
-                },
-            ]
-            : []),
+        ...(isBiostimulantCategory ? [createDetailItem('Gazette No.', product_detail.gazette_notification_number)] : []),
+        ...(isBiostimulantCategory ? [createDetailItem('Gazette Date', gazetteDate)] : []),
+        createDetailItem(`Title of ${categorySingularLabel}`, product_detail.biostimulant_title || product_master.name),
+        createDetailItem(`Composition of ${categorySingularLabel}`, product_detail.biostimulant_composition),
+        createDetailItem('Crops', product_detail.crops),
+        createDetailItem('Dosage', product_detail.doses),
+        createDetailItem('Application method', product_detail.application_method),
+        createDetailItem('Manufacturer details', product_detail.manufacturer_details),
+        createDetailItem('Product Description', product_master.description),
         ...(isStatic
             ? [
-                {
-                    label: 'Mfg Date',
-                    value: product_detail.manufacturing_date
+                createDetailItem(
+                    'Mfg Date',
+                    product_detail.manufacturing_date
                         ? dayjs(product_detail.manufacturing_date).format('MMM DD, YYYY')
-                        : '-',
-                },
-                {
-                    label: 'Expire Date',
-                    value: product_detail.expiry_date
+                        : ''
+                ),
+                createDetailItem(
+                    'Expire Date',
+                    product_detail.expiry_date
                         ? dayjs(product_detail.expiry_date).format('MMM DD, YYYY')
-                        : '-',
-                },
-                {
-                    label: 'Batch No',
-                    value: product_detail.batch_name || '-',
-                },
+                        : ''
+                ),
+                createDetailItem('Batch No', product_detail.batch_name),
             ]
             : []),
-    ];
+    ].filter(Boolean) as { label: string; value: string }[];
 
     const otherDetails = [
-        {
-            label: 'Category',
-            value: categoryLabel,
-        },
-        {
-            label: 'Sub-category',
-            value: product_master.sub_category || '-',
-        },
-        {
-            label: 'Product Code',
-            value: product_master.product_code || '-',
-        },
-    ];
+        createDetailItem('Category', categoryLabel),
+        createDetailItem('Sub-category', product_master.sub_category),
+        createDetailItem('Product Code', product_master.product_code),
+    ].filter(Boolean) as { label: string; value: string }[];
+
+    const manufacturerDetails = [
+        createDetailItem('Company Name', company.company_name),
+        createDetailItem('Registration (GSTIN)', company.gst_no),
+        createDetailItem('License Number', company.license_no),
+        createDetailItem('Registered Address', company.address),
+    ].filter(Boolean) as { label: string; value: string }[];
 
     return (
         <Box sx={{bgcolor: '#f4f6f8', minHeight: '100vh' }}>
@@ -264,28 +238,28 @@ const GuestProductDetail: React.FC = () => {
                                     <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>Manufacturer Information</Typography>
                                 </Stack>
                                 <Grid container spacing={2}>
-                                    <Grid item xs={12} md={4}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Company Name</Typography>
-                                        <Typography variant="h6" sx={{ fontWeight: 800 }}>{company.company_name}</Typography>
-                                        <Stack direction="row" spacing={1} alignItems="center" mt={1} color="text.secondary">
-                                            <History sx={{ fontSize: 14 }} />
-                                            <Typography variant="caption">Authorized Manufacturer</Typography>
-                                        </Stack>
-                                    </Grid>
-                                    <Grid item xs={12} md={4}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Registration (GSTIN)</Typography>
-                                        <Box sx={{ px: 2, py: 1, bgcolor: alpha('#13ae47', 0.05), border: '1px solid', borderColor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'inline-block' }}>
-                                            <Typography variant="body2" sx={{ fontWeight: 800, fontFamily: 'monospace', color: '#13ae47' }}>
-                                                {company.gst_no}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={12} md={4}>
-                                        <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>Registered Address</Typography>
-                                        <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
-                                            {company.address}
-                                        </Typography>
-                                    </Grid>
+                                    {manufacturerDetails.map((item) => (
+                                        <Grid item xs={12} md={4} key={item.label}>
+                                            <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, mb: 1, display: 'block' }}>{item.label}</Typography>
+                                            {item.label === 'Registration (GSTIN)' ? (
+                                                <Box sx={{ px: 2, py: 1, bgcolor: alpha('#13ae47', 0.05), border: '1px solid', borderColor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'inline-block' }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 800, fontFamily: 'monospace', color: '#13ae47' }}>
+                                                        {item.value}
+                                                    </Typography>
+                                                </Box>
+                                            ) : (
+                                                <Typography variant={item.label === 'Company Name' ? 'h6' : 'body2'} sx={{ fontWeight: item.label === 'Company Name' ? 800 : 500, color: item.label === 'Registered Address' ? 'text.secondary' : 'text.primary', lineHeight: item.label === 'Registered Address' ? 1.6 : undefined }}>
+                                                    {item.value}
+                                                </Typography>
+                                            )}
+                                            {item.label === 'Company Name' && (
+                                                <Stack direction="row" spacing={1} alignItems="center" mt={1} color="text.secondary">
+                                                    <History sx={{ fontSize: 14 }} />
+                                                    <Typography variant="caption">Authorized Manufacturer</Typography>
+                                                </Stack>
+                                            )}
+                                        </Grid>
+                                    ))}
                                 </Grid>
                             </Paper>
 
