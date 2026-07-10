@@ -85,7 +85,7 @@ export default function AdminTopBar() {
 
                     <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em' }}>
-                            apnaQR <Box component="span" sx={{ color: 'primary.main' }}>Admin</Box>
+                            apnaQR
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: 1 }}>
                             Product qr management system

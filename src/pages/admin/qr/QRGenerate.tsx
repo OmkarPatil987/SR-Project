@@ -28,6 +28,9 @@ import { getProductCategoryLabel, getProductCategorySingularLabel } from "../../
 interface FormValues {
     product_master_uuid: string;
     type: "static" | "dynamic" | "bulk";
+    description: string;
+    gtin: string;
+    web_link: string;
     gazette_notification_number: string;
     gazette_notification_date: Dayjs | null;
     biostimulant_title: string;
@@ -79,6 +82,9 @@ const QRForm: React.FC = () => {
     const [initialValues, setInitialValues] = useState<FormValues>({
         product_master_uuid: "",
         type: initialType as any,
+        description: "",
+        gtin: "",
+        web_link: "",
         gazette_notification_number: "",
         gazette_notification_date: null,
         biostimulant_title: "",
@@ -124,6 +130,9 @@ const QRForm: React.FC = () => {
                         setInitialValues({
                             product_master_uuid: master?.uuid || "",
                             type: detail?.type || "static",
+                            description: detail?.description || "",
+                            gtin: detail?.gtin || "",
+                            web_link: detail?.web_link || "",
                             gazette_notification_number: detail?.gazette_notification_number || "",
                             gazette_notification_date: detail?.gazette_notification_date ? dayjs(detail.gazette_notification_date) : null,
                             biostimulant_title: detail?.biostimulant_title || "",
@@ -178,6 +187,7 @@ const QRForm: React.FC = () => {
     const handleSubmit = async (values: FormValues, { setSubmitting }: FormikHelpers<FormValues>) => {
         const selectedProduct = products.find((product) => product.uuid === values.product_master_uuid);
         const isBiostimulantCategory = getProductCategoryLabel(selectedProduct?.category) === "Biostimulants";
+        const isBiopesticideCategory = getProductCategoryLabel(selectedProduct?.category) === "Bio Pesticides";
         const payload = {
             ...values,
             gazette_notification_number: isBiostimulantCategory ? values.gazette_notification_number : "",
@@ -185,6 +195,14 @@ const QRForm: React.FC = () => {
             manufacturing_date: values.type === 'static' ? values.manufacturing_date?.format('YYYY-MM-DD') : null,
             expiry_date: values.type === 'static' ? values.expiry_date?.format('YYYY-MM-DD') : null,
             batch_name: values.type === 'static' ? values.batch_name : "",
+            gtin: isBiopesticideCategory ? values.gtin : "",
+            web_link: isBiopesticideCategory ? values.web_link : "",
+            description: isBiopesticideCategory ? "" : values.description,
+            biostimulant_composition: isBiopesticideCategory ? "" : values.biostimulant_composition,
+            crops: isBiopesticideCategory ? "" : values.crops,
+            doses: isBiopesticideCategory ? "" : values.doses,
+            application_method: isBiopesticideCategory ? "" : values.application_method,
+            manufacturer_details: isBiopesticideCategory ? "" : values.manufacturer_details,
         };
         const response = isEdit ? await UpdateQRService({ ...payload, qr_uuid: qrUuidParam || uuid }) : await StoreQRService(payload);
 
@@ -232,6 +250,7 @@ const QRForm: React.FC = () => {
                         const selectedProduct = products.find((product) => product.uuid === values.product_master_uuid);
                         const categoryLabel = getProductCategorySingularLabel(selectedProduct?.category);
                         const isBiostimulantCategory = getProductCategoryLabel(selectedProduct?.category) === "Biostimulants";
+                        const isBiopesticideCategory = getProductCategoryLabel(selectedProduct?.category) === "Bio Pesticides";
 
                         return (
                             <Form>
@@ -337,16 +356,58 @@ const QRForm: React.FC = () => {
                                                 </Grid>
                                             </>
                                         )}
-                                        <Grid item xs={12}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Manufacturer Details</Typography>
-                                            <TextField
-                                                fullWidth multiline rows={2}
-                                                name="manufacturer_details"
-                                                placeholder="Enter full manufacturing address..."
-                                                value={values.manufacturer_details} onChange={handleChange}
-                                                sx={inputStyles}
-                                            />
-                                        </Grid>
+                                        {isBiopesticideCategory ? (
+                                            <>
+                                                <Grid item xs={12} md={6}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>GTIN (Unique Identifier)</Typography>
+                                                    <TextField
+                                                        fullWidth
+                                                        name="gtin"
+                                                        placeholder="Enter GTIN / Unique Identifier..."
+                                                        value={values.gtin}
+                                                        onChange={handleChange}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Web Link</Typography>
+                                                    <TextField
+                                                        fullWidth
+                                                        name="web_link"
+                                                        placeholder="https://example.com"
+                                                        value={values.web_link}
+                                                        onChange={handleChange}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Grid item xs={12}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>QR Description</Typography>
+                                                    <TextField
+                                                        fullWidth
+                                                        multiline
+                                                        rows={4}
+                                                        name="description"
+                                                        placeholder="Add QR-specific description or any reference link..."
+                                                        value={values.description}
+                                                        onChange={handleChange}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Manufacturer Details</Typography>
+                                                    <TextField
+                                                        fullWidth multiline rows={2}
+                                                        name="manufacturer_details"
+                                                        placeholder="Enter full manufacturing address..."
+                                                        value={values.manufacturer_details} onChange={handleChange}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                            </>
+                                        )}
                                     </Grid>
                                 </Box>
 
@@ -391,43 +452,47 @@ const QRForm: React.FC = () => {
                                                 sx={inputStyles}
                                             />
                                         </Grid>
-                                        <Grid item xs={12}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Composition of {categoryLabel}</Typography>
-                                            <TextField
-                                                fullWidth multiline rows={3}
-                                                name="biostimulant_composition"
-                                                placeholder="List active ingredients..."
-                                                value={values.biostimulant_composition} onChange={handleChange}
-                                                sx={inputStyles}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={4}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Target Crops</Typography>
-                                            <TextField
-                                                fullWidth name="crops"
-                                                placeholder="e.g. Wheat, Rice"
-                                                value={values.crops} onChange={handleChange}
-                                                sx={inputStyles}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={4}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Doses</Typography>
-                                            <TextField
-                                                fullWidth name="doses"
-                                                placeholder="e.g. 2ml/L"
-                                                value={values.doses} onChange={handleChange}
-                                                sx={inputStyles}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={4}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Application Method</Typography>
-                                            <TextField
-                                                fullWidth name="application_method"
-                                                placeholder="e.g. Foliar Spray"
-                                                value={values.application_method} onChange={handleChange}
-                                                sx={inputStyles}
-                                            />
-                                        </Grid>
+                                        {!isBiopesticideCategory && (
+                                            <>
+                                                <Grid item xs={12}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Composition of {categoryLabel}</Typography>
+                                                    <TextField
+                                                        fullWidth multiline rows={3}
+                                                        name="biostimulant_composition"
+                                                        placeholder="List active ingredients..."
+                                                        value={values.biostimulant_composition} onChange={handleChange}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={4}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Target Crops</Typography>
+                                                    <TextField
+                                                        fullWidth name="crops"
+                                                        placeholder="e.g. Wheat, Rice"
+                                                        value={values.crops} onChange={handleChange}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={4}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Doses</Typography>
+                                                    <TextField
+                                                        fullWidth name="doses"
+                                                        placeholder="e.g. 2ml/L"
+                                                        value={values.doses} onChange={handleChange}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={4}>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Application Method</Typography>
+                                                    <TextField
+                                                        fullWidth name="application_method"
+                                                        placeholder="e.g. Foliar Spray"
+                                                        value={values.application_method} onChange={handleChange}
+                                                        sx={inputStyles}
+                                                    />
+                                                </Grid>
+                                            </>
+                                        )}
                                     </Grid>
                                 </Box>
 

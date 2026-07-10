@@ -31,6 +31,12 @@ export const PRODUCT_CATEGORY_OPTIONS: ProductCategoryOption[] = [
         aliases: ['pesticide'],
     },
     {
+        value: 'Bio Pesticides',
+        label: 'Bio Pesticides',
+        singularLabel: 'Bio Pesticide',
+        aliases: ['biopesticide', 'biopesticides', 'bio pesticide'],
+    },
+    {
         value: 'Biofertilizers',
         label: 'Biofertilizers',
         singularLabel: 'Biofertilizer',

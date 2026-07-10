@@ -22,7 +22,7 @@ import { RootState } from "../../../redux/store";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import { resetRefresh } from "../../../redux/reducer/refreshSlice";
 import { FetchQRListService, FetchProductListService, FetchCompanyListService } from "../../../utils/services/product.service";
-import { PRODUCT_CATEGORY_OPTIONS } from "../../../utils/productCategory";
+import { PRODUCT_CATEGORY_OPTIONS, getProductCategoryOption } from "../../../utils/productCategory";
 
 const loadImageAsBase64 = async (url: string): Promise<string> => {
     try {
@@ -67,7 +67,7 @@ const DynamicQRList: React.FC = () => {
     });
 
     const filteredProducts = payload.category
-        ? products.filter((product) => product.category === payload.category)
+        ? products.filter((product) => getProductCategoryOption(product.category)?.value === getProductCategoryOption(payload.category)?.value)
         : products;
 
     const fetchFilterData = useCallback(async () => {
