@@ -4,6 +4,7 @@ import PageLoader from '../components/loader/LoaderText';
 import { NAVIGATE_GUEST } from '../constant';
 import GuestLayout from '../layout/GuestLayout';
 import GuestProductDetail from '../pages/guest/product';
+import GuestLabelDetail from '../pages/guest/label';
 import HomePageApnaQR from '../pages/guest/home';
 import CompanyRegister from '../pages/guest/company/CompanyRegister';
 import StaticFaqPage from '../pages/guest/faq/StaticFaq';
@@ -29,6 +30,7 @@ const GuestRoute = () => {
                 <Route path={"/fco-guidelines"} element={<GuestLayout><LegalPages/></GuestLayout>} />
                 <Route path={"/contact-support"} element={<GuestLayout><ContactSupport /></GuestLayout>} />
                 <Route path={"/p/:uuid"} element={<GuestProductDetail />} />
+                <Route path={NAVIGATE_GUEST.LABEL_DETAIL} element={<GuestLabelDetail />} />
                 <Route path={NAVIGATE_GUEST.COMPANY_REGISTER} element={<GuestLayout><CompanyRegister /></GuestLayout>} />
 
                 {/* <Route path={NAVIGATE_GUEST.VOLUNTAYREGISTER_PAGE} element={<GuestLayout><VoluntaryRegistrationPage /></GuestLayout>} />

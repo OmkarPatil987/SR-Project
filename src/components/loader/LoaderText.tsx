@@ -29,7 +29,7 @@ const PageLoader = () => {
                     textAlign: 'center',
                 }}
             >
-                Loading Flood Condition & Relief Information...
+                Loading Information...
             </Typography>
 
         </div>

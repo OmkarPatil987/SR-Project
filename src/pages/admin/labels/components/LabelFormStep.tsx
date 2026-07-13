@@ -4,9 +4,9 @@ import { Formik, Form, FieldArray, FormikErrors } from 'formik';
 import * as Yup from 'yup';
 import {
     Box, Paper, Grid, TextField, Typography, Button, Switch, FormControlLabel,
-    IconButton, Divider, CircularProgress, Alert, Stack,
+    IconButton, Divider, CircularProgress, Alert, Stack, Accordion, AccordionSummary, AccordionDetails, Chip,
 } from '@mui/material';
-import { Add, Delete } from '@mui/icons-material';
+import { Add, Delete, ExpandMore, Factory, Storefront, Inventory2, ErrorOutline } from '@mui/icons-material';
 import { FetchProductGazetteByIdsService } from '../../../../utils/services/label.service';
 import { showSnackbar } from '../../../../redux/reducer/snackbarSlice';
 import { CompanyContact, GazetteDetail, LabelPdfRequestPayload } from '../../../../utils/dto/response/label';
@@ -55,6 +55,27 @@ const validationSchema = Yup.object().shape({
     ),
 });
 
+const RequiredMark: React.FC = () => (
+    <Box component="span" sx={{ color: 'error.main', fontWeight: 700 }}>&nbsp;*</Box>
+);
+
+const fieldLabel = (label: string, required: boolean): React.ReactNode => (
+    <>{label}{required && <RequiredMark />}</>
+);
+
+const SectionHeader: React.FC<{ icon: React.ReactNode; title: string; subtitle?: string; action?: React.ReactNode }> = ({ icon, title, subtitle, action }) => (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, mb: 3, pb: 2, borderBottom: '1px solid #e8f3ee' }}>
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+            <Box sx={{ color: '#19b369', display: 'flex', mt: 0.25 }}>{icon}</Box>
+            <Box>
+                <Typography sx={{ fontWeight: 800, fontSize: '18px', color: '#0e1b15' }}>{title}</Typography>
+                {subtitle && <Typography variant="body2" sx={{ color: '#509574' }}>{subtitle}</Typography>}
+            </Box>
+        </Box>
+        {action}
+    </Box>
+);
+
 const CompanyContactFields: React.FC<{
     prefix: 'manufacturer' | 'marketing';
     values: CompanyContact;
@@ -62,24 +83,25 @@ const CompanyContactFields: React.FC<{
     touched: any;
     handleChange: any;
     disabled?: boolean;
-}> = ({ prefix, values, errors, touched, handleChange, disabled }) => {
-    const fields: { key: keyof CompanyContact; label: string }[] = [
-        { key: 'name', label: 'Name' },
-        { key: 'contact_person', label: 'Contact Person' },
-        { key: 'mobile', label: 'Mobile' },
-        { key: 'email', label: 'Email' },
-        { key: 'website', label: 'Website' },
-        { key: 'license_no', label: 'License No' },
-        { key: 'gst_no', label: 'GST No' },
+    required?: boolean;
+}> = ({ prefix, values, errors, touched, handleChange, disabled, required = true }) => {
+    const fields: { key: keyof CompanyContact; label: string; required: boolean }[] = [
+        { key: 'name', label: 'Name', required },
+        { key: 'contact_person', label: 'Contact Person', required },
+        { key: 'mobile', label: 'Mobile', required },
+        { key: 'email', label: 'Email', required },
+        { key: 'website', label: 'Website', required: false },
+        { key: 'license_no', label: 'License No', required },
+        { key: 'gst_no', label: 'GST No', required },
     ];
     return (
         <Grid container spacing={2}>
-            {fields.map(({ key, label }) => (
+            {fields.map(({ key, label, required: fieldRequired }) => (
                 <Grid item xs={12} md={4} key={key}>
                     <TextField
                         fullWidth
                         size="small"
-                        label={label}
+                        label={fieldLabel(label, fieldRequired)}
                         name={`${prefix}.${key}`}
                         value={values?.[key] ?? ''}
                         onChange={handleChange}
@@ -95,7 +117,7 @@ const CompanyContactFields: React.FC<{
                     multiline
                     rows={2}
                     size="small"
-                    label="Address"
+                    label={fieldLabel('Address', required)}
                     name={`${prefix}.address`}
                     value={values?.address ?? ''}
                     onChange={handleChange}
@@ -130,19 +152,38 @@ const LabelFormFields: React.FC<LabelFormFieldsProps> = ({ values, errors, touch
 
     return (
         <Form noValidate>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 3 }}>
+                <Typography variant="body2" sx={{ color: '#6b7c74' }}>
+                    Fields marked with
+                </Typography>
+                <RequiredMark />
+                <Typography variant="body2" sx={{ color: '#6b7c74' }}>
+                    are required.
+                </Typography>
+            </Box>
+
             <Paper elevation={0} sx={{ border: '1px solid #d1e6dc', borderRadius: '1rem', p: 3, mb: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Manufacturer Details</Typography>
-                <CompanyContactFields prefix="manufacturer" values={values.manufacturer} errors={errors.manufacturer} touched={touched.manufacturer} handleChange={handleChange} />
+                <SectionHeader
+                    icon={<Factory />}
+                    title="Manufacturer Details"
+                    subtitle="Details of the entity manufacturing this product"
+                />
+                <CompanyContactFields prefix="manufacturer" values={values.manufacturer} errors={errors.manufacturer} touched={touched.manufacturer} handleChange={handleChange} required />
             </Paper>
 
             <Paper elevation={0} sx={{ border: '1px solid #d1e6dc', borderRadius: '1rem', p: 3, mb: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800 }}>Marketing Details</Typography>
-                    <FormControlLabel
-                        control={<Switch checked={values.is_manufacturer_marketing_same} onChange={(e) => setFieldValue('is_manufacturer_marketing_same', e.target.checked)} />}
-                        label="Same as Manufacturer"
-                    />
-                </Box>
+                <SectionHeader
+                    icon={<Storefront />}
+                    title="Marketing Details"
+                    subtitle="Details of the entity marketing this product"
+                    action={
+                        <FormControlLabel
+                            control={<Switch checked={values.is_manufacturer_marketing_same} onChange={(e) => setFieldValue('is_manufacturer_marketing_same', e.target.checked)} />}
+                            label="Same as Manufacturer"
+                            sx={{ whiteSpace: 'nowrap' }}
+                        />
+                    }
+                />
                 <CompanyContactFields
                     prefix="marketing"
                     values={values.marketing}
@@ -150,14 +191,53 @@ const LabelFormFields: React.FC<LabelFormFieldsProps> = ({ values, errors, touch
                     touched={touched.marketing}
                     handleChange={handleChange}
                     disabled={values.is_manufacturer_marketing_same}
+                    required={!values.is_manufacturer_marketing_same}
                 />
             </Paper>
 
-            {values.products.map((product, pIdx) => (
-                <Paper key={product.id} elevation={0} sx={{ border: '1px solid #d1e6dc', borderRadius: '1rem', p: 3, mb: 3 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>{product.product_name}</Typography>
+            {values.products.map((product, pIdx) => {
+                const prodErr = productErrors?.[pIdx] as any;
+                const hasProductError = typeof prodErr?.composition === 'string' || typeof prodErr?.specifications === 'string';
 
-                    <Typography sx={{ fontWeight: 700, mb: 1 }}>Composition</Typography>
+                return (
+                <Accordion
+                    key={product.id}
+                    defaultExpanded
+                    elevation={0}
+                    disableGutters
+                    sx={{
+                        border: '1px solid #d1e6dc',
+                        borderRadius: '1rem !important',
+                        mb: 3,
+                        overflow: 'hidden',
+                        '&:before': { display: 'none' },
+                    }}
+                >
+                    <AccordionSummary
+                        expandIcon={<ExpandMore />}
+                        sx={{
+                            px: 3,
+                            py: 1,
+                            bgcolor: '#f8fbf9',
+                            '& .MuiAccordionSummary-content': { alignItems: 'center', gap: 1.5, my: 1.5 },
+                        }}
+                    >
+                        <Inventory2 sx={{ color: '#19b369' }} fontSize="small" />
+                        <Typography sx={{ fontWeight: 800, flex: 1, color: '#0e1b15' }}>{product.product_name}</Typography>
+                        <Chip
+                            size="small"
+                            label={`${product.composition.length} composition · ${product.specifications.length} specs`}
+                            sx={{ bgcolor: '#e8f3ee', color: '#509574', fontWeight: 600 }}
+                        />
+                        {hasProductError && (
+                            <Chip size="small" icon={<ErrorOutline sx={{ fontSize: 16 }} />} label="Needs attention" color="error" variant="outlined" />
+                        )}
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 3, pb: 3, pt: 2 }}>
+
+                    <Typography sx={{ fontWeight: 700, mb: 1 }}>
+                        Composition<RequiredMark />
+                    </Typography>
                     <FieldArray name={`products.${pIdx}.composition`}>
                         {({ push, remove }) => (
                             <Stack spacing={1} sx={{ mb: 2 }}>
@@ -175,7 +255,7 @@ const LabelFormFields: React.FC<LabelFormFieldsProps> = ({ values, errors, touch
                                             value={row.content}
                                             onChange={handleChange}
                                         />
-                                        <IconButton onClick={() => remove(rIdx)} disabled={product.composition.length <= 1}>
+                                        <IconButton onClick={() => remove(rIdx)} disabled={product.composition.length <= 1} aria-label="Remove composition row">
                                             <Delete fontSize="small" />
                                         </IconButton>
                                     </Stack>
@@ -192,7 +272,9 @@ const LabelFormFields: React.FC<LabelFormFieldsProps> = ({ values, errors, touch
 
                     <Divider sx={{ my: 2 }} />
 
-                    <Typography sx={{ fontWeight: 700, mb: 1 }}>Specifications</Typography>
+                    <Typography sx={{ fontWeight: 700, mb: 1 }}>
+                        Specifications<RequiredMark />
+                    </Typography>
                     <FieldArray name={`products.${pIdx}.specifications`}>
                         {({ push, remove }) => (
                             <Stack spacing={1} sx={{ mb: 2 }}>
@@ -210,7 +292,7 @@ const LabelFormFields: React.FC<LabelFormFieldsProps> = ({ values, errors, touch
                                             value={row.value}
                                             onChange={handleChange}
                                         />
-                                        <IconButton onClick={() => remove(rIdx)} disabled={product.specifications.length <= 1}>
+                                        <IconButton onClick={() => remove(rIdx)} disabled={product.specifications.length <= 1} aria-label="Remove specification row">
                                             <Delete fontSize="small" />
                                         </IconButton>
                                     </Stack>
@@ -245,7 +327,7 @@ const LabelFormFields: React.FC<LabelFormFieldsProps> = ({ values, errors, touch
                                             value={entry.dose}
                                             onChange={handleChange}
                                         />
-                                        <IconButton onClick={() => remove(cIdx)} disabled={product.crop_entries.length <= 1}>
+                                        <IconButton onClick={() => remove(cIdx)} disabled={product.crop_entries.length <= 1} aria-label="Remove crop entry">
                                             <Delete fontSize="small" />
                                         </IconButton>
                                     </Stack>
@@ -263,10 +345,23 @@ const LabelFormFields: React.FC<LabelFormFieldsProps> = ({ values, errors, touch
                         value={product.note}
                         onChange={handleChange}
                     />
-                </Paper>
-            ))}
+                    </AccordionDetails>
+                </Accordion>
+                );
+            })}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    position: 'sticky',
+                    bottom: 0,
+                    bgcolor: '#fff',
+                    py: 2,
+                    mt: 1,
+                    borderTop: '1px solid #e8f3ee',
+                }}
+            >
                 <Button onClick={onBack} sx={{ textTransform: 'none' }}>Back</Button>
                 <Button
                     type="submit"

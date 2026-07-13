@@ -81,3 +81,26 @@ export interface LabelPdfHistoryItem {
     products: LabelPdfHistoryProduct[];
     created_at: string;
 }
+
+export interface PublicLabelCompany {
+    name: string;
+    logo: string | null;
+}
+
+export interface PublicLabelProduct {
+    id: number;
+    note: string | null;
+    qr_path: string | null;
+    short_code: string;
+    product_name: string;
+    composition: GazetteCompositionRow[];
+    specifications: GazetteSpecificationRow[];
+    application_details: GazetteApplicationDetails;
+}
+
+export interface PublicLabelResponse {
+    company: PublicLabelCompany;
+    manufacturer: CompanyContact;
+    marketing: CompanyContact;
+    product: PublicLabelProduct;
+}
