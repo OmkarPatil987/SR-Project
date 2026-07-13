@@ -13,11 +13,17 @@ const FilePreviewDrawer: React.FC<FilePreviewDrawerProps> = ({ open, onClose, fi
 	let content: React.ReactNode;
 
 	if (!fileUrl) {
-		content = <Typography>No file selected</Typography>;
+		content = <Typography sx={{ p: 2 }}>No file selected</Typography>;
 	} else if (fileUrl.endsWith(".pdf")) {
-		content = <iframe src={fileUrl} width="100%" height="500px" />;
+		content = (
+			<iframe
+				src={fileUrl}
+				title={title || "File Preview"}
+				style={{ border: "none", flex: 1, width: "100%", height: "100%" }}
+			/>
+		);
 	} else {
-		content = <img src={fileUrl} alt="Preview" width="100%" />;
+		content = <img src={fileUrl} alt="Preview" style={{ width: "100%", height: "auto" }} />;
 	}
 
 	return (
@@ -25,7 +31,16 @@ const FilePreviewDrawer: React.FC<FilePreviewDrawerProps> = ({ open, onClose, fi
 			anchor="right"
 			open={open}
 			onClose={onClose}
-			sx={{ "& .MuiDrawer-paper": { width: "50%", padding: 0, zIndex: 999 } }}
+			sx={{
+				"& .MuiDrawer-paper": {
+					width: { xs: "100%", sm: "80%", md: "60%", lg: "50%" },
+					padding: 0,
+					height: "100%",
+					display: "flex",
+					flexDirection: "column",
+					zIndex: 999,
+				},
+			}}
 		>
 			<Box
 				sx={{
@@ -35,6 +50,7 @@ const FilePreviewDrawer: React.FC<FilePreviewDrawerProps> = ({ open, onClose, fi
 					bgcolor: "primary.main",
 					color: "white",
 					p: 1,
+					flexShrink: 0,
 				}}
 			>
 				<Typography variant="h6">{title || "File Preview"}</Typography>
@@ -42,7 +58,9 @@ const FilePreviewDrawer: React.FC<FilePreviewDrawerProps> = ({ open, onClose, fi
 					<Close />
 				</IconButton>
 			</Box>
-			{content}
+			<Box sx={{ flex: 1, display: "flex", overflow: "auto" }}>
+				{content}
+			</Box>
 		</Drawer>
 	);
 };

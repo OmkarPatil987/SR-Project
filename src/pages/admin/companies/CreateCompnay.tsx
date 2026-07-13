@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Formik, Form, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
+import { useDropzone, FileRejection } from 'react-dropzone';
 import {
     Box,
     Button,
@@ -14,7 +15,9 @@ import {
     Typography,
     Breadcrumbs,
     Link,
-    MenuItem
+    MenuItem,
+    Stack,
+    IconButton
 } from '@mui/material';
 import {
     LocationOn,
@@ -22,11 +25,16 @@ import {
     Info,
     NavigateNext,
     Save,
-    VerifiedUser
+    VerifiedUser,
+    Image as ImageIcon,
+    Extension,
+    CloudUpload,
+    DeleteOutline
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { FetchCompanyDetailsService, StoreCompanyService, UpdateCompanyService } from '../../../utils/services/product.service';
 import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
+import { CompanyRequestPayload, buildCompanyFormData } from '../../../utils/dto/request/company';
 
 // --- Types ---
 interface FormValues {
@@ -44,6 +52,9 @@ interface FormValues {
     bank_ifsc_code: string;
     referral_name: string;
     is_active: boolean;
+    qr_system: boolean;
+    label_with_qr: boolean;
+    label_without_qr: boolean;
 }
 
 // --- Validation Schema: Indian formats + required fields ---
@@ -91,7 +102,48 @@ const CompanyForm: React.FC = () => {
         company_name: '', email: '', mobile: '', state: '', city: '',
         pincode: '', address: '', license_no: '', gst_no: '', pan_no: '',
         bank_account_no: '', bank_ifsc_code: '', referral_name: '', is_active: true,
+        qr_system: true, label_with_qr: false, label_without_qr: false,
     });
+
+    const [selectedLogo, setSelectedLogo] = useState<File | null>(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (logoPreview) URL.revokeObjectURL(logoPreview);
+        };
+    }, [logoPreview]);
+
+    const onDropLogo = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
+        fileRejections.forEach((rejected) => {
+            rejected.errors.forEach((error) => {
+                const message = error.code === 'file-too-large'
+                    ? `Logo "${rejected.file.name}" is too large. Maximum size allowed is 2MB.`
+                    : error.code === 'file-invalid-type'
+                        ? `Logo "${rejected.file.name}" has an unsupported type. Only PNG, JPEG, or WEBP images are allowed.`
+                        : error.message;
+                dispatch(showSnackbar({ type: 'error', message }));
+            });
+        });
+
+        const file = acceptedFiles[0];
+        if (file) {
+            setSelectedLogo(file);
+            setLogoPreview(URL.createObjectURL(file));
+        }
+    }, [dispatch]);
+
+    const { getRootProps: getLogoRootProps, getInputProps: getLogoInputProps, isDragActive: isLogoDragActive } = useDropzone({
+        onDrop: onDropLogo,
+        multiple: false,
+        maxSize: 2 * 1024 * 1024,
+        accept: { 'image/png': [], 'image/jpeg': [], 'image/webp': [] },
+    });
+
+    const handleRemoveLogo = () => {
+        setSelectedLogo(null);
+        setLogoPreview(null);
+    };
 
     useEffect(() => {
         const fetchCompanyData = async () => {
@@ -114,10 +166,19 @@ const CompanyForm: React.FC = () => {
 
     const handleSubmit = async (values: FormValues, { setSubmitting }: FormikHelpers<FormValues>) => {
         let response: any;
+        const { qr_system, label_with_qr, label_without_qr, ...rest } = values;
         if (isEdit) {
-            response = await UpdateCompanyService({ ...values, company_uuid: uuid });
+            response = await UpdateCompanyService({ ...rest, company_uuid: uuid });
         } else {
-            response = await StoreCompanyService(values);
+            const payload: CompanyRequestPayload = {
+                ...rest,
+                logo: selectedLogo,
+                enabled_modules: {
+                    qr_system,
+                    label_system: { label_with_qr, label_without_qr },
+                },
+            };
+            response = await StoreCompanyService(buildCompanyFormData(payload));
         }
 
         if (response.code === 200) {
@@ -379,6 +440,110 @@ const CompanyForm: React.FC = () => {
                                     </Grid>
                                 </Grid>
                             </Box>
+
+                            {!isEdit && (
+                                <Box sx={{ p: 4, bgcolor: '#f8fbf9', borderTop: '1px solid #e8f3eb', borderBottom: '1px solid #e8f3eb' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, borderBottom: '1px solid #e8f3eb', pb: 2 }}>
+                                        <ImageIcon sx={{ color: '#19b34d' }} />
+                                        <Typography sx={{ fontSize: '18px', fontWeight: 'bold' }}>Company Logo</Typography>
+                                    </Box>
+                                    <Box
+                                        {...getLogoRootProps()}
+                                        sx={{
+                                            border: '2px dashed #aaa',
+                                            borderRadius: 2,
+                                            padding: 3,
+                                            textAlign: 'center',
+                                            cursor: 'pointer',
+                                            bgcolor: isLogoDragActive ? '#f0f0f0' : '#fafafa',
+                                            '&:hover': { borderColor: 'primary.main' },
+                                        }}
+                                    >
+                                        <input {...getLogoInputProps()} />
+                                        <CloudUpload sx={{ mb: 1, color: '#509567' }} />
+                                        <Typography variant="body2" color="text.secondary">
+                                            {isLogoDragActive ? 'Drop the logo here...' : 'Drag & drop a logo image here, or click to select'}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.disabled">
+                                            PNG, JPEG, or WEBP — up to 2MB
+                                        </Typography>
+                                    </Box>
+                                    {logoPreview && (
+                                        <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 2 }}>
+                                            <Box component="img" src={logoPreview} alt="Logo preview" sx={{ width: 72, height: 72, objectFit: 'contain', border: '1px solid #d1e6d8', borderRadius: 1, bgcolor: '#fff' }} />
+                                            <Box sx={{ flex: 1 }}>
+                                                <Typography variant="body2">{selectedLogo?.name}</Typography>
+                                            </Box>
+                                            <IconButton onClick={handleRemoveLogo} size="small" color="error">
+                                                <DeleteOutline />
+                                            </IconButton>
+                                        </Stack>
+                                    )}
+                                </Box>
+                            )}
+
+                            {!isEdit && (
+                                <Box sx={{ p: 4 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, borderBottom: '1px solid #e8f3eb', pb: 2 }}>
+                                        <Extension sx={{ color: '#19b34d' }} />
+                                        <Typography sx={{ fontSize: '18px', fontWeight: 'bold' }}>Enabled Modules</Typography>
+                                    </Box>
+                                    <Stack spacing={1}>
+                                        <FormControlLabel
+                                            control={
+                                                <Switch
+                                                    checked={values.qr_system}
+                                                    onChange={(e) => setFieldValue('qr_system', e.target.checked)}
+                                                    color="primary"
+                                                />
+                                            }
+                                            label="QR System"
+                                        />
+                                        <FormControlLabel
+                                            control={
+                                                <Switch
+                                                    checked={values.label_with_qr || values.label_without_qr}
+                                                    onChange={(e) => {
+                                                        const enabled = e.target.checked;
+                                                        setFieldValue('label_with_qr', enabled);
+                                                        if (!enabled) setFieldValue('label_without_qr', false);
+                                                    }}
+                                                    color="primary"
+                                                />
+                                            }
+                                            label="Label System"
+                                        />
+                                        {(values.label_with_qr || values.label_without_qr) && (
+                                            <Box sx={{ pl: 4, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                                                <FormControlLabel
+                                                    control={
+                                                        <Switch
+                                                            checked={values.label_with_qr}
+                                                            onChange={() => {
+                                                                setFieldValue('label_with_qr', true);
+                                                                setFieldValue('label_without_qr', false);
+                                                            }}
+                                                        />
+                                                    }
+                                                    label="Label with QR"
+                                                />
+                                                <FormControlLabel
+                                                    control={
+                                                        <Switch
+                                                            checked={values.label_without_qr}
+                                                            onChange={() => {
+                                                                setFieldValue('label_without_qr', true);
+                                                                setFieldValue('label_with_qr', false);
+                                                            }}
+                                                        />
+                                                    }
+                                                    label="Label without QR"
+                                                />
+                                            </Box>
+                                        )}
+                                    </Stack>
+                                </Box>
+                            )}
 
                             {/* Action Footer */}
                             <Box sx={{ p: 3, bgcolor: '#f8fbf9', display: 'flex', justifyContent: 'flex-end', gap: 2, borderTop: '1px solid #e8f3eb' }}>

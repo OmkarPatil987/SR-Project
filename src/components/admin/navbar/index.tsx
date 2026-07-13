@@ -8,7 +8,7 @@ import {
 	Description,
 	ExpandLess, Dashboard,
 	ExpandMore, AccountTree, Ballot, WaterDamage, Assignment, PhotoLibrary, MonetizationOn, PersonAdd, VolunteerActivism,
-    Category, ReceiptLong, Business, Inventory, QrCode, QrCodeScanner
+    Category, ReceiptLong, Business, Inventory, QrCode, QrCodeScanner, Label
 } from '@mui/icons-material';
 
 import { RootState } from '../../../redux/store';
@@ -18,11 +18,11 @@ import { clearSorting } from '../../../redux/reducer/sortingSlice';
 import { handleNav } from '../../../utils/permission';
 const Icons = {
 	Description, Dashboard, AccountTree, Ballot,
-	WaterDamage,        
-	Assignment,         
-	PhotoLibrary,    
-	MonetizationOn,     
-    PersonAdd, VolunteerActivism, Category, ReceiptLong, Business, Inventory, QrCode, QrCodeScanner
+	WaterDamage,
+	Assignment,
+	PhotoLibrary,
+	MonetizationOn,
+    PersonAdd, VolunteerActivism, Category, ReceiptLong, Business, Inventory, QrCode, QrCodeScanner, Label
 };
 
 interface MenuItem {

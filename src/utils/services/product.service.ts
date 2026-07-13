@@ -36,7 +36,7 @@ export const FetchQRDetailsService = (payload: any) => handlePostRequest<any>('v
 export const FetchCompanyDetailsService = (payload: any) => handlePostRequest<any>('v1/company/details', payload, CMRF_NGO_ADMIN_SERVER);
 
 //StoreCompanyService
-export const StoreCompanyService = (payload: any) => handlePostRequest<any>('v1/company/create', payload, CMRF_NGO_ADMIN_SERVER);
+export const StoreCompanyService = (payload: any) => handlePostRequest<any>('v1/company/create', payload, CMRF_NGO_ADMIN_SERVER, { 'Content-Type': 'multipart/form-data' });
 
 //UpdateCompanyService
 
@@ -44,7 +44,7 @@ export const UpdateCompanyService = (payload: any) => handlePostRequest<any>('v1
 
 // Guest company registration + captcha
 export const GenerateCompanyCaptchaTokenService = (params: any) => handleGetRequest<any>('v1/generate-captcha-token', params, CMRF_NGO_ADMIN_SERVER);
-export const RegisterCompanyService = (payload: any) => handlePostRequest<any>('v1/company/register', payload, CMRF_NGO_ADMIN_SERVER);
+export const RegisterCompanyService = (payload: any) => handlePostRequest<any>('v1/company/register', payload, CMRF_NGO_ADMIN_SERVER, { 'Content-Type': 'multipart/form-data' });
 
 // Company approval/status update
 export const ApproveCompanyService = (payload: any) => handlePostRequest<any>('v1/company/approve', payload, CMRF_NGO_ADMIN_SERVER);

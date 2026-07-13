@@ -37,6 +37,8 @@ export const NAVIGATE_ADMIN = {
     QR_STATIC: '/static-qr',
     QR_DYNAMIC: '/dynamic-qr',
     QR_CREATE: '/create-qr',
+    LABEL: '/labels',
+    LABEL_HISTORY: '/labels/history',
     get DASHBOARD_PAGE() { return `${NAVIGATE_MODULES.ADMIN}${this.DASHBAORD}`; },
     get PROFILE_PAGE() { return `${NAVIGATE_MODULES.ADMIN}${this.PROFILE}`; },
   

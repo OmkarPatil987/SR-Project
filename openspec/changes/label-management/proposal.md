@@ -4,7 +4,7 @@ The backend now exposes a full set of "Label Management" APIs (product gazette l
 
 ## What Changes
 
-- Add a **Label** entry to the main menu/sidebar, visible only when the logged-in company's `enabled_modules.label_system` flag is enabled (either `label_with_qr` or `label_without_qr`).
+- Add a **Label** entry to the main menu/sidebar, visible to both `admin` and `company_admin` roles, gated on `enabled_modules.label_system` (either `label_with_qr` or `label_without_qr`) read directly off the logged-in user's own record (see design.md Decision 1 for how this is sourced).
 - Add a **product selection screen**: paginated, checkboxed list of gazette products (`GET /products-gazette-list`), with a running selection count, a hard cap of 10 selected items, and a "Next" action that proceeds only when at least 1 item is selected.
 - Add a **label details form screen**: on "Next", selected IDs are POSTed to `POST /products-gazette-by-ids` to fetch full gazette data (composition, specifications, application details, note) per product. The response pre-fills an editable form containing:
   - Manufacturer details (name, address, contact person, mobile, email, website, license no, GST no)
@@ -24,11 +24,11 @@ The backend now exposes a full set of "Label Management" APIs (product gazette l
 - `label-history`: Paginated list of previously generated label PDFs with their associated products, creation date, and download/view links.
 
 ### Modified Capabilities
-- None. `enabled_modules.label_system` already exists on the company model; this change only consumes the existing flag on the frontend to gate menu visibility and does not change its shape or the company create/register APIs.
+- None. `enabled_modules.label_system` already exists on the login response's `User` object; this change only reads the existing flag on the frontend to gate menu visibility and does not change its shape or the company create/register APIs.
 
 ## Impact
 
-- **New frontend routes/pages**: a Label module with 3-4 screens (selection, form/edit, result, history) reachable from a new sidebar "Label" menu item, gated by the company's `label_system` module flag.
+- **New frontend routes/pages**: a Label module with 3-4 screens (selection, form/edit, result, history) reachable from a new sidebar "Label" menu item, gated by `enabled_modules.label_system` for both `admin` and `company_admin`.
 - **API integration**: 4 existing backend endpoints consumed for the first time on the frontend — `GET /products-gazette-list`, `POST /products-gazette-by-ids`, `POST /products-gazette/label-pdf`, `GET /products-gazette/label-pdf-list`. No backend changes required; contracts are already finalized (see reference curl examples supplied with this change).
 - **State/session handling**: selected product IDs and fetched gazette data must be held across the selection → form step, and the last-submitted form payload must be retained to support "Edit" after PDF generation without a redundant `products-gazette-by-ids` call.
 - **Auth**: all four endpoints (except the public QR scan endpoint, out of scope here) require the existing company-scoped Bearer token already used elsewhere in the app.

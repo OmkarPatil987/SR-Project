@@ -9,14 +9,26 @@ export interface LoginResponse {
     Token: string | null;
     User: UserDetails | null;
 }
+export interface LabelSystemModules {
+    label_with_qr?: boolean;
+    label_without_qr?: boolean;
+}
+
+export interface EnabledModules {
+    qr_system?: boolean;
+    label_system?: LabelSystemModules;
+}
+
 export interface UserDetails {
     id: number;
     uuid: string;
+    company_id?: number;
     company_uuid?: string;
     name: string;
     email: string;
     mobile: string;
     user_type: string;
+    enabled_modules?: EnabledModules;
     reference_user_id: number;
     password: string;
     role_id: number;

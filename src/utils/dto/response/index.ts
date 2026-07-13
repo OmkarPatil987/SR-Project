@@ -1,4 +1,5 @@
 export * from './auth';
+export * from './label';
 
 export interface ListResponseType<T> {
     data: Array<T>

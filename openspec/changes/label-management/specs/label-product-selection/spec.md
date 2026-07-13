@@ -1,14 +1,18 @@
 ## ADDED Requirements
 
-### Requirement: Label menu visibility gated by company module flag
-The system SHALL show a "Label" navigation entry to a logged-in company user only when that company's `enabled_modules.label_system` configuration has at least one of `label_with_qr` or `label_without_qr` set to `true`. Companies without either sub-flag enabled SHALL NOT see the entry.
+### Requirement: Label menu visibility gated by module flag, for admin and company_admin
+The system SHALL show a "Label" navigation entry to a logged-in user with the `admin` or `company_admin` role only when that user's `enabled_modules.label_system` has at least one of `label_with_qr` or `label_without_qr` set to `true`. Users without either sub-flag enabled SHALL NOT see the entry.
 
-#### Scenario: Company with label module enabled sees the menu entry
-- **WHEN** a `company_admin` user whose company has `enabled_modules.label_system.label_with_qr = true` logs in
+#### Scenario: Company admin with label module enabled sees the menu entry
+- **WHEN** a `company_admin` user whose `enabled_modules.label_system.label_with_qr = true` logs in
 - **THEN** the sidebar/menu SHALL include a "Label" entry that navigates to the label selection screen
 
-#### Scenario: Company without label module does not see the menu entry
-- **WHEN** a `company_admin` user whose company has `enabled_modules.label_system.label_with_qr = false` and `label_without_qr = false` (or the flag is absent) logs in
+#### Scenario: Admin with label module enabled sees the menu entry
+- **WHEN** an `admin` (superadmin) user whose `enabled_modules.label_system.label_with_qr = true` logs in
+- **THEN** the sidebar/menu SHALL include a "Label" entry that navigates to the label selection screen
+
+#### Scenario: User without label module does not see the menu entry
+- **WHEN** a user (`admin` or `company_admin`) whose `enabled_modules.label_system.label_with_qr = false` and `label_without_qr = false` (or the flag is absent) logs in
 - **THEN** the sidebar/menu SHALL NOT include a "Label" entry
 
 ### Requirement: Paginated product gazette listing for selection

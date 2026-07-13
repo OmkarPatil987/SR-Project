@@ -25,6 +25,14 @@ type NavigationItem = {
 };
 
 
+const LABEL_MENU_UUID = "label-001";
+
+export const hasLabelModule = (): boolean => {
+    const enabledModules = store.getState().authUser?.userDetails?.enabled_modules;
+    const labelSystem = enabledModules?.label_system;
+    return Boolean(labelSystem?.label_with_qr || labelSystem?.label_without_qr);
+};
+
 export const handleMakingNestedData = (dispatch: any) => {
     const authUser = store.getState().authUser;
     const userType = authUser?.userDetails?.user_type;
@@ -35,7 +43,8 @@ export const handleMakingNestedData = (dispatch: any) => {
                 ? "company_admin"
                 : "admin";
     let mainPermissionsObject = responseDataPermissionUsingRole[permissionKey] ?? {};
-    const user_role_permission: Array<user_role_permission> = mainPermissionsObject?.user_role_permission ?? [];
+    const user_role_permission: Array<user_role_permission> = (mainPermissionsObject?.user_role_permission ?? [])
+        .filter((item: user_role_permission) => item.uuid !== LABEL_MENU_UUID || hasLabelModule());
     let nestedPermissionsDataArray = store.getState().permission?.nestedPermissionsData ?? [];
     if (!nestedPermissionsDataArray || nestedPermissionsDataArray?.length === 0) {
         const buildNestedArrayWithDetails = (permissions: user_role_permission[]): Array<any> => {

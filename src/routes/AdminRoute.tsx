@@ -16,6 +16,8 @@ import QRForm from '../pages/admin/qr/QRGenerate';
 import QRListDynamic from '../pages/admin/qr/DynamicQr';
 import CompanyForm from '../pages/admin/companies/CreateCompnay';
 import CompanyProfile from '../pages/admin/profile/CompanyProfile';
+import GenerateLabel from '../pages/admin/labels/GenerateLabel';
+import LabelHistory from '../pages/admin/labels/LabelHistory';
 
 
 const DashboardPage = lazy(() => import('../pages/admin/dashboard'))
@@ -37,6 +39,8 @@ const AdminRoute = () => {
                     <Route path={NAVIGATE_ADMIN.QR_DYNAMIC} element={<QRListDynamic />} />
                     <Route path={NAVIGATE_ADMIN.QR_CREATE} element={<QRForm />} />
                     <Route path={NAVIGATE_ADMIN.PROFILE} element={<CompanyProfile />} />
+                    <Route path={NAVIGATE_ADMIN.LABEL_HISTORY} element={<LabelHistory />} />
+                    <Route path={NAVIGATE_ADMIN.LABEL} element={<GenerateLabel />} />
                     <Route
                         path={NAVIGATE_ADMIN.USERS}
                         element={<UserListPage />}
