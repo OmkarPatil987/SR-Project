@@ -35,8 +35,8 @@ const contactSchema = (required: boolean) => Yup.object().shape({
     mobile: required ? Yup.string().required('Required') : Yup.string(),
     email: required ? Yup.string().email('Invalid email').required('Required') : Yup.string().email('Invalid email'),
     website: Yup.string(),
-    license_no: required ? Yup.string().required('Required') : Yup.string(),
-    gst_no: required ? Yup.string().required('Required') : Yup.string(),
+    license_no: Yup.string(),
+    gst_no: Yup.string(),
 });
 
 const validationSchema = Yup.object().shape({
@@ -91,8 +91,8 @@ const CompanyContactFields: React.FC<{
         { key: 'mobile', label: 'Mobile', required },
         { key: 'email', label: 'Email', required },
         { key: 'website', label: 'Website', required: false },
-        { key: 'license_no', label: 'License No', required },
-        { key: 'gst_no', label: 'GST No', required },
+        { key: 'license_no', label: 'License No', required: false },
+        { key: 'gst_no', label: 'GST No', required: false },
     ];
     return (
         <Grid container spacing={2}>

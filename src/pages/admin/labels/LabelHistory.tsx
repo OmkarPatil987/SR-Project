@@ -3,15 +3,16 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
     Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Typography, Skeleton, Chip, IconButton, Tooltip, Button, Stack, SelectChangeEvent,
+    Typography, Skeleton, Chip, IconButton, Tooltip, Button, Stack, SelectChangeEvent, TextField, InputAdornment,
 } from '@mui/material';
-import { Visibility, Download, Add } from '@mui/icons-material';
+import { Visibility, Download, Add, Search as SearchIcon } from '@mui/icons-material';
 import { FetchLabelPdfHistoryService } from '../../../utils/services/label.service';
 import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
 import { LabelPdfHistoryItem } from '../../../utils/dto/response/label';
 import CustomPagination from '../../../components/common/table/TablePagination';
 import FilePreviewDrawer from '../../../components/common/FilePreview';
 import { NAVIGATE_MODULES, NAVIGATE_ADMIN } from '../../../constant';
+import useDebounce from '../../../hooks/useDebounce';
 
 const LabelHistory: React.FC = () => {
     const dispatch = useDispatch();
@@ -23,10 +24,16 @@ const LabelHistory: React.FC = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [search, setSearch] = useState('');
+    const debouncedSearch = useDebounce(search, 500);
 
     const fetchHistory = useCallback(async () => {
         setLoading(true);
-        const { code, data } = await FetchLabelPdfHistoryService({ limit, offset: (page - 1) * limit });
+        const { code, data } = await FetchLabelPdfHistoryService({
+            limit,
+            offset: (page - 1) * limit,
+            ...(debouncedSearch ? { query: debouncedSearch } : {}),
+        });
         if (code === 200 && data) {
             setItems(data.product_label_pdfs ?? []);
             setTotal(data.pagination?.total ?? (data.product_label_pdfs?.length ?? 0));
@@ -36,9 +43,11 @@ const LabelHistory: React.FC = () => {
             dispatch(showSnackbar({ type: 'error', message: 'Failed to fetch label history.' }));
         }
         setLoading(false);
-    }, [limit, page, dispatch]);
+    }, [limit, page, debouncedSearch, dispatch]);
 
     useEffect(() => { fetchHistory(); }, [fetchHistory]);
+
+    useEffect(() => { setPage(1); }, [debouncedSearch]);
 
     return (
         <Box className="w-full px-4 py-4">
@@ -56,6 +65,17 @@ const LabelHistory: React.FC = () => {
                     Generate New Label
                 </Button>
             </Stack>
+
+            <TextField
+                size="small"
+                placeholder="Search by company name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                InputProps={{
+                    startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>,
+                }}
+                sx={{ mb: 2, width: { xs: '100%', sm: 320 } }}
+            />
 
             <Paper elevation={0} sx={{ border: '1px solid #d1e6dc', borderRadius: '1rem', overflow: 'hidden' }}>
                 <TableContainer>

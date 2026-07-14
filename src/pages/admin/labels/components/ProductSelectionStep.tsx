@@ -2,13 +2,15 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
     Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Checkbox, Typography, Button, Skeleton, Alert, SelectChangeEvent,
+    Checkbox, Typography, Button, Skeleton, Alert, SelectChangeEvent, TextField, InputAdornment,
 } from '@mui/material';
+import { Search as SearchIcon } from '@mui/icons-material';
 import { FetchProductGazetteListService } from '../../../../utils/services/label.service';
 import { showSnackbar } from '../../../../redux/reducer/snackbarSlice';
 import { GazetteListItem } from '../../../../utils/dto/response/label';
 import CustomPagination from '../../../../components/common/table/TablePagination';
 import { MAX_LABEL_SELECTIONS } from '../constants/labelConstants';
+import useDebounce from '../../../../hooks/useDebounce';
 
 interface ProductSelectionStepProps {
     selectedIds: number[];
@@ -23,10 +25,16 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({ selectedIds
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(15);
+    const [search, setSearch] = useState('');
+    const debouncedSearch = useDebounce(search, 500);
 
     const fetchList = useCallback(async () => {
         setLoading(true);
-        const { code, data } = await FetchProductGazetteListService({ limit, offset: (page - 1) * limit });
+        const { code, data } = await FetchProductGazetteListService({
+            limit,
+            offset: (page - 1) * limit,
+            ...(debouncedSearch ? { query: debouncedSearch } : {}),
+        });
         if (code === 200 && data) {
             setItems(data.items ?? []);
             setTotal(data.pagination?.total ?? 0);
@@ -36,9 +44,11 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({ selectedIds
             dispatch(showSnackbar({ type: 'error', message: 'Failed to fetch product gazette list.' }));
         }
         setLoading(false);
-    }, [limit, page, dispatch]);
+    }, [limit, page, debouncedSearch, dispatch]);
 
     useEffect(() => { fetchList(); }, [fetchList]);
+
+    useEffect(() => { setPage(1); }, [debouncedSearch]);
 
     const isAtLimit = selectedIds.length >= MAX_LABEL_SELECTIONS;
 
@@ -62,6 +72,17 @@ const ProductSelectionStep: React.FC<ProductSelectionStepProps> = ({ selectedIds
             {isAtLimit && (
                 <Alert severity="info" sx={{ mb: 2 }}>You have reached the maximum of {MAX_LABEL_SELECTIONS} labels. Deselect an item to choose another.</Alert>
             )}
+
+            <TextField
+                size="small"
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                InputProps={{
+                    startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>,
+                }}
+                sx={{ mb: 2, width: { xs: '100%', sm: 320 } }}
+            />
 
             <Paper elevation={0} sx={{ border: '1px solid #d1e6dc', borderRadius: '1rem', overflow: 'hidden' }}>
                 <TableContainer>

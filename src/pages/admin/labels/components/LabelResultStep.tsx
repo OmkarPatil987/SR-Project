@@ -10,7 +10,7 @@ interface LabelResultStepProps {
 }
 
 const LabelResultStep: React.FC<LabelResultStepProps> = ({ fileUrl, onEdit, onStartNew }) => {
-    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(true);
 
     return (
         <Box>
