@@ -151,12 +151,23 @@ const CompanyForm: React.FC = () => {
                 setLoading(true);
                 const { data, code } = await FetchCompanyDetailsService({ company_uuid: uuid });
                 if (code === 200 && data) {
-                    const companyData = data.company || data;
+                    const enabledModules = data.enabled_modules || {};
                     setInitialValues({
                         ...initialValues, // Fallback to defaults
-                        ...companyData,
-                        is_active: companyData.is_active ?? true
+                        ...data,
+                        gst_no: data.gst_no ?? '',
+                        pan_no: data.pan_no ?? '',
+                        bank_account_no: data.bank_account_no ?? '',
+                        bank_ifsc_code: data.bank_ifsc_code ?? '',
+                        referral_name: data.referral_name ?? '',
+                        is_active: data.is_active ?? true,
+                        qr_system: enabledModules.qr_system ?? true,
+                        label_with_qr: enabledModules.label_system?.label_with_qr ?? false,
+                        label_without_qr: enabledModules.label_system?.label_without_qr ?? false,
                     });
+                    if (data.logo) {
+                        setLogoPreview(data.logo);
+                    }
                 }
                 setLoading(false);
             }
@@ -165,21 +176,19 @@ const CompanyForm: React.FC = () => {
     }, [isEdit, uuid]);
 
     const handleSubmit = async (values: FormValues, { setSubmitting }: FormikHelpers<FormValues>) => {
-        let response: any;
         const { qr_system, label_with_qr, label_without_qr, ...rest } = values;
-        if (isEdit) {
-            response = await UpdateCompanyService({ ...rest, company_uuid: uuid });
-        } else {
-            const payload: CompanyRequestPayload = {
-                ...rest,
-                logo: selectedLogo,
-                enabled_modules: {
-                    qr_system,
-                    label_system: { label_with_qr, label_without_qr },
-                },
-            };
-            response = await StoreCompanyService(buildCompanyFormData(payload));
-        }
+        const payload: CompanyRequestPayload = {
+            ...rest,
+            ...(isEdit && uuid ? { company_uuid: uuid } : {}),
+            logo: selectedLogo,
+            enabled_modules: {
+                qr_system,
+                label_system: { label_with_qr, label_without_qr },
+            },
+        };
+        const response = isEdit
+            ? await UpdateCompanyService(buildCompanyFormData(payload))
+            : await StoreCompanyService(buildCompanyFormData(payload));
 
         if (response.code === 200) {
             dispatch(showSnackbar({ type: 'success', message: `Company ${isEdit ? 'updated' : 'created'} successfully` }));
@@ -441,109 +450,105 @@ const CompanyForm: React.FC = () => {
                                 </Grid>
                             </Box>
 
-                            {!isEdit && (
-                                <Box sx={{ p: 4, bgcolor: '#f8fbf9', borderTop: '1px solid #e8f3eb', borderBottom: '1px solid #e8f3eb' }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, borderBottom: '1px solid #e8f3eb', pb: 2 }}>
-                                        <ImageIcon sx={{ color: '#19b34d' }} />
-                                        <Typography sx={{ fontSize: '18px', fontWeight: 'bold' }}>Company Logo</Typography>
-                                    </Box>
-                                    <Box
-                                        {...getLogoRootProps()}
-                                        sx={{
-                                            border: '2px dashed #aaa',
-                                            borderRadius: 2,
-                                            padding: 3,
-                                            textAlign: 'center',
-                                            cursor: 'pointer',
-                                            bgcolor: isLogoDragActive ? '#f0f0f0' : '#fafafa',
-                                            '&:hover': { borderColor: 'primary.main' },
-                                        }}
-                                    >
-                                        <input {...getLogoInputProps()} />
-                                        <CloudUpload sx={{ mb: 1, color: '#509567' }} />
-                                        <Typography variant="body2" color="text.secondary">
-                                            {isLogoDragActive ? 'Drop the logo here...' : 'Drag & drop a logo image here, or click to select'}
-                                        </Typography>
-                                        <Typography variant="caption" color="text.disabled">
-                                            PNG, JPEG, or WEBP — up to 2MB
-                                        </Typography>
-                                    </Box>
-                                    {logoPreview && (
-                                        <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 2 }}>
-                                            <Box component="img" src={logoPreview} alt="Logo preview" sx={{ width: 72, height: 72, objectFit: 'contain', border: '1px solid #d1e6d8', borderRadius: 1, bgcolor: '#fff' }} />
-                                            <Box sx={{ flex: 1 }}>
-                                                <Typography variant="body2">{selectedLogo?.name}</Typography>
-                                            </Box>
-                                            <IconButton onClick={handleRemoveLogo} size="small" color="error">
-                                                <DeleteOutline />
-                                            </IconButton>
-                                        </Stack>
-                                    )}
+                            <Box sx={{ p: 4, bgcolor: '#f8fbf9', borderTop: '1px solid #e8f3eb', borderBottom: '1px solid #e8f3eb' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, borderBottom: '1px solid #e8f3eb', pb: 2 }}>
+                                    <ImageIcon sx={{ color: '#19b34d' }} />
+                                    <Typography sx={{ fontSize: '18px', fontWeight: 'bold' }}>Company Logo</Typography>
                                 </Box>
-                            )}
-
-                            {!isEdit && (
-                                <Box sx={{ p: 4 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, borderBottom: '1px solid #e8f3eb', pb: 2 }}>
-                                        <Extension sx={{ color: '#19b34d' }} />
-                                        <Typography sx={{ fontSize: '18px', fontWeight: 'bold' }}>Enabled Modules</Typography>
-                                    </Box>
-                                    <Stack spacing={1}>
-                                        <FormControlLabel
-                                            control={
-                                                <Switch
-                                                    checked={values.qr_system}
-                                                    onChange={(e) => setFieldValue('qr_system', e.target.checked)}
-                                                    color="primary"
-                                                />
-                                            }
-                                            label="QR System"
-                                        />
-                                        <FormControlLabel
-                                            control={
-                                                <Switch
-                                                    checked={values.label_with_qr || values.label_without_qr}
-                                                    onChange={(e) => {
-                                                        const enabled = e.target.checked;
-                                                        setFieldValue('label_with_qr', enabled);
-                                                        if (!enabled) setFieldValue('label_without_qr', false);
-                                                    }}
-                                                    color="primary"
-                                                />
-                                            }
-                                            label="Label System"
-                                        />
-                                        {(values.label_with_qr || values.label_without_qr) && (
-                                            <Box sx={{ pl: 4, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                                                <FormControlLabel
-                                                    control={
-                                                        <Switch
-                                                            checked={values.label_with_qr}
-                                                            onChange={() => {
-                                                                setFieldValue('label_with_qr', true);
-                                                                setFieldValue('label_without_qr', false);
-                                                            }}
-                                                        />
-                                                    }
-                                                    label="Label with QR"
-                                                />
-                                                <FormControlLabel
-                                                    control={
-                                                        <Switch
-                                                            checked={values.label_without_qr}
-                                                            onChange={() => {
-                                                                setFieldValue('label_without_qr', true);
-                                                                setFieldValue('label_with_qr', false);
-                                                            }}
-                                                        />
-                                                    }
-                                                    label="Label without QR"
-                                                />
-                                            </Box>
-                                        )}
+                                <Box
+                                    {...getLogoRootProps()}
+                                    sx={{
+                                        border: '2px dashed #aaa',
+                                        borderRadius: 2,
+                                        padding: 3,
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                        bgcolor: isLogoDragActive ? '#f0f0f0' : '#fafafa',
+                                        '&:hover': { borderColor: 'primary.main' },
+                                    }}
+                                >
+                                    <input {...getLogoInputProps()} />
+                                    <CloudUpload sx={{ mb: 1, color: '#509567' }} />
+                                    <Typography variant="body2" color="text.secondary">
+                                        {isLogoDragActive ? 'Drop the logo here...' : 'Drag & drop a logo image here, or click to select'}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.disabled">
+                                        PNG, JPEG, or WEBP — up to 2MB
+                                    </Typography>
+                                </Box>
+                                {logoPreview && (
+                                    <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 2 }}>
+                                        <Box component="img" src={logoPreview} alt="Logo preview" sx={{ width: 72, height: 72, objectFit: 'contain', border: '1px solid #d1e6d8', borderRadius: 1, bgcolor: '#fff' }} />
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="body2">{selectedLogo?.name}</Typography>
+                                        </Box>
+                                        <IconButton onClick={handleRemoveLogo} size="small" color="error">
+                                            <DeleteOutline />
+                                        </IconButton>
                                     </Stack>
+                                )}
+                            </Box>
+
+                            <Box sx={{ p: 4 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3, borderBottom: '1px solid #e8f3eb', pb: 2 }}>
+                                    <Extension sx={{ color: '#19b34d' }} />
+                                    <Typography sx={{ fontSize: '18px', fontWeight: 'bold' }}>Enabled Modules</Typography>
                                 </Box>
-                            )}
+                                <Stack spacing={1}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={values.qr_system}
+                                                onChange={(e) => setFieldValue('qr_system', e.target.checked)}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="QR System"
+                                    />
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={values.label_with_qr || values.label_without_qr}
+                                                onChange={(e) => {
+                                                    const enabled = e.target.checked;
+                                                    setFieldValue('label_with_qr', enabled);
+                                                    if (!enabled) setFieldValue('label_without_qr', false);
+                                                }}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Label System"
+                                    />
+                                    {(values.label_with_qr || values.label_without_qr) && (
+                                        <Box sx={{ pl: 4, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={values.label_with_qr}
+                                                        onChange={() => {
+                                                            setFieldValue('label_with_qr', true);
+                                                            setFieldValue('label_without_qr', false);
+                                                        }}
+                                                    />
+                                                }
+                                                label="Label with QR"
+                                            />
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={values.label_without_qr}
+                                                        onChange={() => {
+                                                            setFieldValue('label_without_qr', true);
+                                                            setFieldValue('label_with_qr', false);
+                                                        }}
+                                                    />
+                                                }
+                                                label="Label without QR"
+                                            />
+                                        </Box>
+                                    )}
+                                </Stack>
+                            </Box>
 
                             {/* Action Footer */}
                             <Box sx={{ p: 3, bgcolor: '#f8fbf9', display: 'flex', justifyContent: 'flex-end', gap: 2, borderTop: '1px solid #e8f3eb' }}>

@@ -1,6 +1,7 @@
 
 import ClientsAxios from '../client-axios';
 import { handleGetRequest, handlePostRequest } from './requestHandler';
+import { CompanyDetailsResponse } from '../dto/response/company';
 const { CMRF_NGO_ADMIN_SERVER } = ClientsAxios;
 
 
@@ -33,14 +34,14 @@ export const UpdateQRService = (payload: any) => handlePostRequest<any>('v1/qr/u
 export const FetchQRDetailsService = (payload: any) => handlePostRequest<any>('v1/qr', payload, CMRF_NGO_ADMIN_SERVER);
 
 //FetchCompanyDetailsService
-export const FetchCompanyDetailsService = (payload: any) => handlePostRequest<any>('v1/company/details', payload, CMRF_NGO_ADMIN_SERVER);
+export const FetchCompanyDetailsService = (payload: any) => handlePostRequest<CompanyDetailsResponse>('v1/company/details', payload, CMRF_NGO_ADMIN_SERVER);
 
 //StoreCompanyService
 export const StoreCompanyService = (payload: any) => handlePostRequest<any>('v1/company/create', payload, CMRF_NGO_ADMIN_SERVER, { 'Content-Type': 'multipart/form-data' });
 
 //UpdateCompanyService
 
-export const UpdateCompanyService = (payload: any) => handlePostRequest<any>('v1/company/update', payload, CMRF_NGO_ADMIN_SERVER);
+export const UpdateCompanyService = (payload: any) => handlePostRequest<any>('v1/company/update', payload, CMRF_NGO_ADMIN_SERVER, { 'Content-Type': 'multipart/form-data' });
 
 // Guest company registration + captcha
 export const GenerateCompanyCaptchaTokenService = (params: any) => handleGetRequest<any>('v1/generate-captcha-token', params, CMRF_NGO_ADMIN_SERVER);

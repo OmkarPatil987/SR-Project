@@ -5,7 +5,7 @@ import {
     TableRow, TablePagination, TextField, Typography, Chip, IconButton,
     InputAdornment, Button, Avatar, Stack, Tooltip, Divider, Breadcrumbs,
     Link, Skeleton, Dialog, DialogTitle, DialogContent, Drawer,
-    Grid
+    Grid, CircularProgress
 } from '@mui/material';
 import {
     Search as SearchIcon,
@@ -22,7 +22,7 @@ import {
     Cancel as CancelIcon,
     HourglassTop as HourglassTopIcon
 } from '@mui/icons-material';
-import { FetchCompanyListService, ApproveCompanyService } from '../../../utils/services/product.service';
+import { FetchCompanyListService, ApproveCompanyService, FetchCompanyDetailsService } from '../../../utils/services/product.service';
 import { useDispatch } from 'react-redux';
 import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
 import useDebounce from '../../../hooks/useDebounce';
@@ -47,6 +47,7 @@ const CompanyList = () => {
     const [approvalLoading, setApprovalLoading] = useState(false);
     const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
     const [detailsCompany, setDetailsCompany] = useState<any>(null);
+    const [detailsLoading, setDetailsLoading] = useState(false);
     const dispatch = useDispatch();
 
     const inputStyles = {
@@ -99,9 +100,19 @@ const CompanyList = () => {
         setSelectedCompany(null);
     };
 
-    const handleOpenDetails = (company: any) => {
+    const handleOpenDetails = async (company: any) => {
         setDetailsCompany(company);
         setDetailsDrawerOpen(true);
+        setDetailsLoading(true);
+        const { code, data } = await FetchCompanyDetailsService({ company_uuid: company.company_uuid });
+        if (code === 200 && data) {
+            // Details endpoint returns `uuid`, not `company_uuid` — keep the identifier
+            // and list-only fields (e.g. approval_status) from the row.
+            setDetailsCompany({ ...company, ...data, company_uuid: company.company_uuid });
+        } else {
+            dispatch(showSnackbar({ type: 'error', message: 'Failed to fetch company details.' }));
+        }
+        setDetailsLoading(false);
     };
 
     const handleCloseDetails = () => {
@@ -332,12 +343,16 @@ const CompanyList = () => {
 
                 <Divider sx={{ mb: 3 }} />
 
-                {detailsCompany && (
+                {detailsLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                        <CircularProgress />
+                    </Box>
+                ) : detailsCompany && (
                     <Box sx={{ overflowY: 'auto' }}>
                         {/* Header Badge */}
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 4, p: 2, bgcolor: '#f8fbfa', borderRadius: 3 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Avatar variant="rounded" sx={{ width: 56, height: 56, bgcolor: '#0fbd69' }}>
+                                <Avatar variant="rounded" src={detailsCompany.logo || undefined} sx={{ width: 56, height: 56, bgcolor: '#0fbd69' }}>
                                     <BusinessIcon fontSize="large" />
                                 </Avatar>
                                 <Box>
@@ -407,6 +422,18 @@ const CompanyList = () => {
                         <DetailItem label="PAN Number" value={detailsCompany.pan_no} />
                         <DetailItem label="Bank Account" value={detailsCompany.bank_account_no} />
                         <DetailItem label="IFSC Code" value={detailsCompany.bank_ifsc_code} />
+
+                        <Divider sx={{ my: 3 }} />
+
+                        {/* Enabled Modules */}
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <VerifiedUserIcon fontSize="small" color="primary" /> Enabled Modules
+                        </Typography>
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}><DetailItem label="QR System" value={detailsCompany.enabled_modules?.qr_system} /></Grid>
+                            <Grid item xs={6}><DetailItem label="Label With QR" value={detailsCompany.enabled_modules?.label_system?.label_with_qr} /></Grid>
+                            <Grid item xs={6}><DetailItem label="Label Without QR" value={detailsCompany.enabled_modules?.label_system?.label_without_qr} /></Grid>
+                        </Grid>
 
                         <Divider sx={{ my: 3 }} />
 

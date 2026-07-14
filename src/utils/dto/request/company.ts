@@ -1,6 +1,7 @@
 import { EnabledModules } from "../response/auth";
 
 export interface CompanyRequestPayload {
+    company_uuid?: string;
     company_name: string;
     email: string;
     mobile: string;

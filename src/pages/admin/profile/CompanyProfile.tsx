@@ -78,10 +78,14 @@ const CompanyProfile = () => {
             setLoading(true);
             const { data, code } = await FetchCompanyDetailsService({ company_uuid: companyUuid });
             if (code === 200 && data) {
-                const companyData = data.company || data;
                 setInitialValues({
                     ...defaultValues,
-                    ...companyData,
+                    ...data,
+                    gst_no: data.gst_no ?? '',
+                    pan_no: data.pan_no ?? '',
+                    bank_account_no: data.bank_account_no ?? '',
+                    bank_ifsc_code: data.bank_ifsc_code ?? '',
+                    referral_name: data.referral_name ?? '',
                 });
             } else {
                 dispatch(showSnackbar({ type: 'error', message: 'Failed to fetch company details.' }));
@@ -93,7 +97,13 @@ const CompanyProfile = () => {
 
     const handleSubmit = async (values: FormValues, { setSubmitting, resetForm }: FormikHelpers<FormValues>) => {
         if (!companyUuid) return;
-        const response = await UpdateCompanyService({ ...values, company_uuid: companyUuid });
+        const formData = new FormData();
+        Object.entries({ ...values, company_uuid: companyUuid }).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                formData.append(key, String(value));
+            }
+        });
+        const response = await UpdateCompanyService(formData);
         if (response.code === 200) {
             dispatch(showSnackbar({ type: 'success', message: 'Company profile updated successfully.' }));
             setIsEditing(false);
