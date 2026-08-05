@@ -12,28 +12,12 @@ import {
     Add, FileDownload, Visibility, ContentCopy,
     Business, Inventory2, RestartAlt, QrCode2, Close, Layers
 } from "@mui/icons-material";
-import { jsPDF } from "jspdf";
 import { RootState } from "../../../redux/store";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import { resetRefresh } from "../../../redux/reducer/refreshSlice";
 import { FetchQRListService, FetchProductListService, FetchCompanyListService } from "../../../utils/services/product.service";
 import { PRODUCT_CATEGORY_OPTIONS, getProductCategoryOption } from "../../../utils/productCategory";
-
-export const loadImageAsBase64 = async (url: string): Promise<string> => {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) return "";
-        const blob = await response.blob();
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    } catch (e) {
-        return "";
-    }
-};
+import { downloadQrAsJpg } from "../../../utils/qrDownload";
 
 const StaticQRList: React.FC = () => {
     const navigate = useNavigate();
@@ -113,21 +97,17 @@ const StaticQRList: React.FC = () => {
         dispatch(showSnackbar({ type: "success", message: "Public link copied to clipboard!" }));
     };
 
-    const handleDownloadPDF = async (row: any) => {
-        if (!row.qr_path) return;
+    const handleDownloadJPG = async (row: any) => {
+        if (!row.qr_path) {
+            dispatch(showSnackbar({ type: "error", message: "QR image not found" }));
+            return;
+        }
         setDownloadingId(row.detail_uuid);
         try {
-            const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: [80, 100] });
-            const base64 = await loadImageAsBase64(row.qr_path);
-            if (base64) {
-                doc.addImage(base64, "PNG", 15, 10, 50, 50);
-          
-                doc.text(`Batch: ${row.product_code || 'N/A'}`, 40, 82, { align: "center" });
-                doc.save(`${row.product_name}_Static_Badge.pdf`);
-                dispatch(showSnackbar({ type: "success", message: "PDF Downloaded" }));
-            }
+            await downloadQrAsJpg(row.qr_path, `${row.product_name}_QR`);
+            dispatch(showSnackbar({ type: "success", message: "QR image downloaded" }));
         } catch (err) {
-            dispatch(showSnackbar({ type: "error", message: "Failed to generate PDF" }));
+            dispatch(showSnackbar({ type: "error", message: "Failed to download QR image" }));
         } finally { setDownloadingId(null); }
     };
 
@@ -255,8 +235,8 @@ const StaticQRList: React.FC = () => {
                                                 <Tooltip title="View Page">
                                                     <IconButton size="small" onClick={() => window.open(`/p/${row.qr_uuid}`, '_blank')} sx={{ color: '#4c9a74' }}><Visibility fontSize="small" /></IconButton>
                                                 </Tooltip>
-                                                <Tooltip title="Download PDF">
-                                                    <IconButton size="small" onClick={() => handleDownloadPDF(row)} disabled={downloadingId === row.detail_uuid}>
+                                                <Tooltip title="Download JPG">
+                                                    <IconButton size="small" onClick={() => handleDownloadJPG(row)} disabled={downloadingId === row.detail_uuid}>
                                                         {downloadingId === row.detail_uuid ? <CircularProgress size={18} /> : <FileDownload fontSize="small" />}
                                                     </IconButton>
                                                 </Tooltip>
@@ -360,7 +340,8 @@ const StaticQRList: React.FC = () => {
                                     fullWidth
                                     variant="outlined"
                                     startIcon={<FileDownload />}
-                                    onClick={() => handleDownloadPDF(selectedQR)}
+                                    onClick={() => handleDownloadJPG(selectedQR)}
+                                    disabled={downloadingId === selectedQR.detail_uuid}
                                     sx={{
                                         borderRadius: 3,
                                         textTransform: 'none',
@@ -370,7 +351,7 @@ const StaticQRList: React.FC = () => {
                                         color: '#475569'
                                     }}
                                 >
-                                    PDF
+                                    JPG
                                 </Button>
                                 <Button
                                     fullWidth

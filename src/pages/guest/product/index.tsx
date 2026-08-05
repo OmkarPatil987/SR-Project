@@ -215,7 +215,7 @@ const GuestProductDetail: React.FC = () => {
                 createDetailItem('Dosage', product_detail.doses),
                 createDetailItem('Application method', product_detail.application_method),
                 createDetailItem('Manufacturer details', product_detail.manufacturer_details),
-                createDetailItem('Product Description', product_detail.description),
+                createDetailItem('Product Information', product_detail.description),
                 ...dateDetails,
             ]
     ).filter(Boolean) as { label: string; value: string }[];
@@ -301,7 +301,7 @@ const GuestProductDetail: React.FC = () => {
                                                 </Typography>
                                                 <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
                                                     <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                                        {item.label === 'Product Description' || isLinkField ? renderTextWithLinks(item.value) : item.value}
+                                                        {item.label === 'Product Information' || isLinkField ? renderTextWithLinks(item.value) : item.value}
                                                     </Typography>
                                                     {isLinkField && item.value && item.value !== '-' && (
                                                         <Tooltip title="Copy link">

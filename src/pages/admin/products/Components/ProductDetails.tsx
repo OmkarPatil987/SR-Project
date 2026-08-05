@@ -6,16 +6,14 @@ import {
 } from '@mui/material';
 import {
     Download, CalendarMonth, Verified, Info, QrCode2, Person,
-    MoreVert, NavigateNext, ContentCopy, Visibility, PictureAsPdf,
-    Details
+    MoreVert, NavigateNext, ContentCopy, Visibility, Image as ImageIcon
 } from '@mui/icons-material';
 import { useState, useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { showSnackbar } from '../../../../redux/reducer/snackbarSlice';
 import { FetchProductDetailsService } from '../../../../utils/services/product.service';
 import { BaseUrls } from '../../../../utils/base-urls';
-import { jsPDF } from "jspdf";
-import { loadImageAsBase64 } from '../../qr/StaticList';
+import { downloadQrAsJpg } from '../../../../utils/qrDownload';
 import { getProductCategoryLabel } from '../../../../utils/productCategory';
 
 const S3_URL = BaseUrls.S3_BASE_URL.url;
@@ -87,9 +85,9 @@ const ProductDetail: React.FC = () => {
         handleMenuClose();
     };
 
-    const handleDownloadPDF = async (batch: any) => {
+    const handleDownloadJPG = async (batch: any) => {
         // Access the nested path: detail -> qr_codes[0] -> qr_path
-        const qrCodeData = batch.qr_codes?.[0];
+        const qrCodeData = batch?.qr_codes?.[0];
         if (!qrCodeData?.qr_path) {
             dispatch(showSnackbar({ type: "error", message: "QR path not found" }));
             return;
@@ -97,17 +95,10 @@ const ProductDetail: React.FC = () => {
 
         setDownloadingId(qrCodeData.qr_id);
         try {
-            const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: [80, 100] });
-            const base64 = await loadImageAsBase64(qrCodeData.qr_path);
-
-            if (base64) {
-                doc.addImage(base64, "PNG", 15, 10, 50, 50);
-        
-                doc.save(`${batch.batch_name}_Badge.pdf`);
-                dispatch(showSnackbar({ type: "success", message: "PDF Downloaded" }));
-            }
+            await downloadQrAsJpg(qrCodeData.qr_path, `${batch.batch_name}_QR`);
+            dispatch(showSnackbar({ type: "success", message: "QR image downloaded" }));
         } catch (err) {
-            dispatch(showSnackbar({ type: "error", message: "Failed to generate PDF" }));
+            dispatch(showSnackbar({ type: "error", message: "Failed to download QR image" }));
         } finally {
             setDownloadingId(null);
             handleMenuClose();
@@ -268,7 +259,7 @@ const ProductDetail: React.FC = () => {
                                         <Button
                                             fullWidth size="small" variant="contained" disableElevation
                                             startIcon={downloadingId === detail.qr_codes?.[0]?.qr_id ? <CircularProgress size={14} color="inherit" /> : <Download sx={{ fontSize: '16px !important' }} />}
-                                            onClick={() => handleDownloadPDF(detail)}
+                                            onClick={() => handleDownloadJPG(detail)}
                                             disabled={downloadingId !== null}
                                             sx={{
                                                 bgcolor: 'rgba(19, 236, 131, 0.1)', color: '#0d1b15', fontWeight: 800, fontSize: '11px',
@@ -317,9 +308,9 @@ const ProductDetail: React.FC = () => {
                         <ListItemIcon><Visibility fontSize="small" sx={{ color: '#4c9a74' }} /></ListItemIcon>
                         <ListItemText primaryTypographyProps={{ fontWeight: 700, fontSize: '13px', color: '#0d1b15' }}>View Live Page</ListItemText>
                     </MenuItem>
-                    <MenuItem onClick={() => handleDownloadPDF(Details)} sx={{ py: 1.2 }}>
-                        <ListItemIcon><PictureAsPdf fontSize="small" sx={{ color: '#4c9a74' }} /></ListItemIcon>
-                        <ListItemText primaryTypographyProps={{ fontWeight: 700, fontSize: '13px', color: '#0d1b15' }}>Export PDF</ListItemText>
+                    <MenuItem onClick={() => handleDownloadJPG(selectedBatch)} sx={{ py: 1.2 }}>
+                        <ListItemIcon><ImageIcon fontSize="small" sx={{ color: '#4c9a74' }} /></ListItemIcon>
+                        <ListItemText primaryTypographyProps={{ fontWeight: 700, fontSize: '13px', color: '#0d1b15' }}>Download JPG</ListItemText>
                     </MenuItem>
                 </Menu>
 

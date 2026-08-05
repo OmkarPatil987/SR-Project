@@ -384,13 +384,13 @@ const QRForm: React.FC = () => {
                                         ) : (
                                             <>
                                                 <Grid item xs={12}>
-                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>QR Description</Typography>
+                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Product Information</Typography>
                                                     <TextField
                                                         fullWidth
                                                         multiline
                                                         rows={4}
                                                         name="description"
-                                                        placeholder="Add QR-specific description or any reference link..."
+                                                        placeholder="Add product information or any reference link..."
                                                         value={values.description}
                                                         onChange={handleChange}
                                                         sx={inputStyles}

@@ -17,27 +17,12 @@ import {
     Business, Inventory2, RestartAlt, QrCode2, Close, MoreVert, Layers
 } from "@mui/icons-material";
 
-import { jsPDF } from "jspdf";
 import { RootState } from "../../../redux/store";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import { resetRefresh } from "../../../redux/reducer/refreshSlice";
 import { FetchQRListService, FetchProductListService, FetchCompanyListService } from "../../../utils/services/product.service";
 import { PRODUCT_CATEGORY_OPTIONS, getProductCategoryOption } from "../../../utils/productCategory";
-
-const loadImageAsBase64 = async (url: string): Promise<string> => {
-    try {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    } catch (e) {
-        return "";
-    }
-};
+import { downloadQrAsJpg } from "../../../utils/qrDownload";
 
 const DynamicQRList: React.FC = () => {
     const navigate = useNavigate();
@@ -129,16 +114,16 @@ const DynamicQRList: React.FC = () => {
     };
 
     const handleDownload = async (row: any) => {
-        if (!row.qr_path) return;
+        if (!row.qr_path) {
+            dispatch(showSnackbar({ type: "error", message: "QR image not found" }));
+            return;
+        }
         setDownloadingId(row.detail_uuid);
         try {
-            const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: [80, 100] });
-            const base64 = await loadImageAsBase64(row.qr_path);
-            if (base64) doc.addImage(base64, "PNG", 15, 10, 50, 50);
-            doc.setFont("helvetica", "bold");
-     
-            doc.save(`${row.product_name}_QR.pdf`);
-            dispatch(showSnackbar({ type: "success", message: "PDF Downloaded" }));
+            await downloadQrAsJpg(row.qr_path, `${row.product_name}_QR`);
+            dispatch(showSnackbar({ type: "success", message: "QR image downloaded" }));
+        } catch (err) {
+            dispatch(showSnackbar({ type: "error", message: "Failed to download QR image" }));
         } finally {
             setDownloadingId(null);
         }
@@ -275,7 +260,7 @@ const DynamicQRList: React.FC = () => {
                                                         <Visibility fontSize="small" />
                                                     </IconButton>
                                                 </Tooltip>
-                                                <Tooltip title="Download PDF">
+                                                <Tooltip title="Download JPG">
                                                     <IconButton size="small" onClick={() => handleDownload(row)} disabled={downloadingId === row.detail_uuid}>
                                                         {downloadingId === row.detail_uuid ? <CircularProgress size={18} /> : <FileDownload fontSize="small" />}
                                                     </IconButton>
@@ -333,7 +318,7 @@ const DynamicQRList: React.FC = () => {
                             <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>{selectedQR.company_name}</Typography>
                             <Divider sx={{ width: '100%', mb: 3, borderStyle: 'dashed' }} />
                             <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
-                                <Button fullWidth variant="outlined" startIcon={<FileDownload />} onClick={() => handleDownload(selectedQR)} sx={{ borderRadius: 3, fontWeight: 700 }}>PDF</Button>
+                                <Button fullWidth variant="outlined" startIcon={<FileDownload />} onClick={() => handleDownload(selectedQR)} disabled={downloadingId === selectedQR.detail_uuid} sx={{ borderRadius: 3, fontWeight: 700 }}>JPG</Button>
                                 <Button fullWidth variant="contained" startIcon={<Visibility />} onClick={() => window.open(`/p/${selectedQR.qr_uuid}`, '_blank')} sx={{ borderRadius: 3, fontWeight: 700, bgcolor: '#13ae47', '&:hover': { bgcolor: '#0f8c39' } }}>Live Page</Button>
                             </Stack>
                         </Box>
