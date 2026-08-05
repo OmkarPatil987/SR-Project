@@ -20,6 +20,9 @@ export const FetchProductDetailsService = (payload: any) => handlePostRequest<an
 //getCompanyList
 export const FetchCompanyListService = (payload: any) => handlePostRequest<any>('v1/company/list', payload, CMRF_NGO_ADMIN_SERVER);
 
+//FetchProductsGazetteListService — regulator gazette dataset, filtered by product_name
+export const FetchProductsGazetteListService = (payload: any) => handlePostRequest<any>('v1/products-gazette/list', payload, CMRF_NGO_ADMIN_SERVER);
+
 //CommonDeleteService
 export const CommonDeleteService = (url: string, payload: any) => handlePostRequest<any>(`v1/${url}`, payload, CMRF_NGO_ADMIN_SERVER);
 

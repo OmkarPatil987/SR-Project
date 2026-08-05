@@ -91,8 +91,15 @@ const StaticQRList: React.FC = () => {
         setSelectedQR(null);
     };
 
-    const handleCopyLink = (qrUuid: string) => {
-        const publicUrl = `${window.location.origin}/p/${qrUuid}`;
+    const handleCopyLink = (row: any) => {
+        // Prefer the short code; fall back to the uuid so a row without one
+        // still copies a working link rather than /p/undefined.
+        const code = row?.short_code || row?.qr_uuid;
+        if (!code) {
+            dispatch(showSnackbar({ type: "error", message: "No public link available for this QR" }));
+            return;
+        }
+        const publicUrl = `${window.location.origin}/p/${code}`;
         navigator.clipboard.writeText(publicUrl);
         dispatch(showSnackbar({ type: "success", message: "Public link copied to clipboard!" }));
     };
@@ -230,7 +237,7 @@ const StaticQRList: React.FC = () => {
                                                     </IconButton>
                                                 </Tooltip>
                                                 <Tooltip title="Copy Link">
-                                                    <IconButton size="small" onClick={() => handleCopyLink(row.qr_uuid)} sx={{ color: '#0288d1' }}><ContentCopy fontSize="small" /></IconButton>
+                                                    <IconButton size="small" onClick={() => handleCopyLink(row)} sx={{ color: '#0288d1' }}><ContentCopy fontSize="small" /></IconButton>
                                                 </Tooltip>
                                                 <Tooltip title="View Page">
                                                     <IconButton size="small" onClick={() => window.open(`/p/${row.qr_uuid}`, '_blank')} sx={{ color: '#4c9a74' }}><Visibility fontSize="small" /></IconButton>

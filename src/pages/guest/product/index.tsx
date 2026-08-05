@@ -17,7 +17,8 @@ import {
     Description,
     Domain,
     History,
-    ContentCopy
+    ContentCopy,
+    Science
 } from '@mui/icons-material';
 import { Fragment, ReactNode, useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
@@ -25,6 +26,8 @@ import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
 import { GuestProductDetailsService } from '../../../utils/services/guest.service';
 import dayjs from 'dayjs';
 import { getProductCategoryLabel, getProductCategorySingularLabel } from '../../../utils/productCategory';
+import { decodeComposition } from '../../../utils/gazette';
+import DetailTable from '../../../components/common/DetailTable';
 
 // --- Interfaces based on new API structure ---
 interface QRData {
@@ -134,6 +137,16 @@ const GuestProductDetail: React.FC = () => {
         ? dayjs(product_detail.gazette_notification_date).format('MMM DD, YYYY')
         : '';
 
+    // Composition may be gazette-encoded JSON or legacy prose — decode decides.
+    const decodedComposition = decodeComposition(product_detail.biostimulant_composition);
+    const compositionRows = decodedComposition.kind === 'structured'
+        ? decodedComposition.composition.map((row) => ({ key: row.ingredient, value: row.content }))
+        : [];
+    const specificationRows = decodedComposition.kind === 'structured'
+        ? decodedComposition.specifications.map((row) => ({ key: row.parameter, value: row.value }))
+        : [];
+    const legacyCompositionText = decodedComposition.kind === 'text' ? decodedComposition.value : '';
+
     const createDetailItem = (label: string, value?: string | null) => {
         if (!value) return null;
         return { label, value };
@@ -210,7 +223,8 @@ const GuestProductDetail: React.FC = () => {
                 ...(isBiostimulantCategory ? [createDetailItem('Gazette No.', product_detail.gazette_notification_number)] : []),
                 ...(isBiostimulantCategory ? [createDetailItem('Gazette Date', gazetteDate)] : []),
                 createDetailItem(`Title of ${categorySingularLabel}`, product_detail.biostimulant_title || product_master.name),
-                createDetailItem(`Composition of ${categorySingularLabel}`, product_detail.biostimulant_composition),
+                // Structured composition renders as a table below, not as a row here.
+                createDetailItem(`Composition of ${categorySingularLabel}`, legacyCompositionText),
                 createDetailItem('Crops', product_detail.crops),
                 createDetailItem('Dosage', product_detail.doses),
                 createDetailItem('Application method', product_detail.application_method),
@@ -316,6 +330,33 @@ const GuestProductDetail: React.FC = () => {
                                     })}
                                 </Box>
                             </Paper>
+
+                            {(compositionRows.length > 0 || specificationRows.length > 0) && (
+                                <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
+                                    <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
+                                        <Box sx={{ width: 32, height: 32, bgcolor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#13ae47' }}>
+                                            <Science fontSize="small" />
+                                        </Box>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
+                                            Composition &amp; Specifications
+                                        </Typography>
+                                    </Stack>
+                                    <Stack spacing={3}>
+                                        <DetailTable
+                                            title={`Composition of ${categorySingularLabel}`}
+                                            keyHeader="Ingredient"
+                                            valueHeader="Content"
+                                            rows={compositionRows}
+                                        />
+                                        <DetailTable
+                                            title="Specifications"
+                                            keyHeader="Parameter"
+                                            valueHeader="Value"
+                                            rows={specificationRows}
+                                        />
+                                    </Stack>
+                                </Paper>
+                            )}
 
                             {!isBiopesticideCategory && (
                                 <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>

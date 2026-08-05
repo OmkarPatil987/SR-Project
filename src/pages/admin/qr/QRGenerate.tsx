@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Formik, Form, FormikHelpers } from "formik";
 import * as Yup from "yup";
@@ -22,8 +22,13 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useDispatch } from "react-redux";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import PageHead from "../../../components/common/page/PageHead";
-import { FetchProductListService, FetchQRDetailsService, StoreQRService, UpdateQRService } from "../../../utils/services/product.service";
+import { FetchProductListService, FetchQRDetailsService, StoreQRService, UpdateQRService, FetchProductsGazetteListService } from "../../../utils/services/product.service";
 import { getProductCategoryLabel, getProductCategorySingularLabel } from "../../../utils/productCategory";
+import DetailTable from "../../../components/common/DetailTable";
+import {
+    GazetteEntry, CompositionRow, SpecificationRow,
+    extractCrops, extractDoses, encodeComposition, decodeComposition, parseGazetteDate
+} from "../../../utils/gazette";
 
 interface FormValues {
     product_master_uuid: string;
@@ -102,6 +107,47 @@ const QRForm: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [products, setProducts] = useState<any[]>([]);
 
+    // Gazette lookup state (Biostimulants only)
+    const [gazetteOptions, setGazetteOptions] = useState<GazetteEntry[]>([]);
+    const [selectedGazette, setSelectedGazette] = useState<GazetteEntry | null>(null);
+    const [gazetteLoading, setGazetteLoading] = useState(false);
+    const [composition, setComposition] = useState<CompositionRow[]>([]);
+    const [specifications, setSpecifications] = useState<SpecificationRow[]>([]);
+
+    const hasStructuredComposition = composition.length > 0 || specifications.length > 0;
+
+    // Guards the autocomplete race: a slow response for "Bio" must not land
+    // after a fast one for "Bioventa" and repopulate the list with stale options.
+    const gazetteRequestRef = useRef(0);
+    const gazetteDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const fetchGazette = useCallback(async (productName?: string) => {
+        const requestId = ++gazetteRequestRef.current;
+        setGazetteLoading(true);
+        try {
+            const payload: any = productName?.trim()
+                ? { offset: 0, limit: 20, product_name: productName.trim() }
+                : { offset: 0, limit: 5 };
+            const { code, data } = await FetchProductsGazetteListService(payload);
+            if (requestId !== gazetteRequestRef.current) return; // superseded
+            setGazetteOptions(code === 200 && Array.isArray(data?.data) ? data.data : []);
+        } catch {
+            if (requestId === gazetteRequestRef.current) setGazetteOptions([]);
+        } finally {
+            if (requestId === gazetteRequestRef.current) setGazetteLoading(false);
+        }
+    }, []);
+
+    const handleGazetteInputChange = useCallback((value: string, reason: string) => {
+        if (reason !== "input") return;
+        if (gazetteDebounceRef.current) clearTimeout(gazetteDebounceRef.current);
+        gazetteDebounceRef.current = setTimeout(() => fetchGazette(value), 400);
+    }, [fetchGazette]);
+
+    useEffect(() => () => {
+        if (gazetteDebounceRef.current) clearTimeout(gazetteDebounceRef.current);
+    }, []);
+
     const inputStyles = {
         '& .MuiOutlinedInput-root': { bgcolor: '#f6f8f7', border: 'none' },
         '& fieldset': { border: 'none' }
@@ -127,6 +173,19 @@ const QRForm: React.FC = () => {
                         const detail = res.data.product_detail;
                         const master = res.data.product_master;
 
+                        // Structured composition round-trips through the same
+                        // string field; legacy prose falls back to the textarea.
+                        const decoded = decodeComposition(detail?.biostimulant_composition);
+                        if (decoded.kind === "structured") {
+                            setComposition(decoded.composition);
+                            setSpecifications(decoded.specifications);
+                        }
+
+                        // Pre-seed the autocomplete so the saved title shows on edit.
+                        if (detail?.biostimulant_title) {
+                            setSelectedGazette({ id: -1, product_name: detail.biostimulant_title } as GazetteEntry);
+                        }
+
                         setInitialValues({
                             product_master_uuid: master?.uuid || "",
                             type: detail?.type || "static",
@@ -134,9 +193,12 @@ const QRForm: React.FC = () => {
                             gtin: detail?.gtin || "",
                             web_link: detail?.web_link || "",
                             gazette_notification_number: detail?.gazette_notification_number || "",
-                            gazette_notification_date: detail?.gazette_notification_date ? dayjs(detail.gazette_notification_date) : null,
+                            // Tolerates both the stored ISO form and any
+                            // human-readable value saved before the parser existed.
+                            gazette_notification_date: parseGazetteDate(detail?.gazette_notification_date),
                             biostimulant_title: detail?.biostimulant_title || "",
-                            biostimulant_composition: detail?.biostimulant_composition || "",
+                            // Holds only the free-text form; structured rows live in component state.
+                            biostimulant_composition: decoded.kind === "text" ? decoded.value : "",
                             crops: detail?.crops || "",
                             doses: detail?.doses || "",
                             application_method: detail?.application_method || "",
@@ -152,6 +214,43 @@ const QRForm: React.FC = () => {
         };
         fetchInitialData();
     }, [isEdit, qrUuidParam, uuid]);
+
+    /**
+     * Applies a chosen gazette record to the form. Crops and Doses are filled
+     * but stay editable; Application Method is never auto-filled; Gazette
+     * No./Date are only written when the record actually carries them, so a
+     * null in the dataset does not wipe what the admin already typed.
+     */
+    const handleGazetteSelect = (
+        entry: GazetteEntry | null,
+        setFieldValue: (field: string, value: any) => void
+    ) => {
+        setSelectedGazette(entry);
+
+        if (!entry) {
+            setFieldValue("biostimulant_title", "");
+            setComposition([]);
+            setSpecifications([]);
+            return;
+        }
+
+        setFieldValue("biostimulant_title", entry.product_name || "");
+        setComposition(Array.isArray(entry.composition) ? entry.composition : []);
+        setSpecifications(Array.isArray(entry.specifications) ? entry.specifications : []);
+
+        const crops = extractCrops(entry);
+        if (crops) setFieldValue("crops", crops);
+
+        const dose = extractDoses(entry);
+        if (dose) setFieldValue("doses", dose);
+
+        if (entry.gazette_no) setFieldValue("gazette_notification_number", entry.gazette_no);
+
+        // The API returns human-readable dates ("25th March, 2026"), which
+        // plain dayjs() cannot parse — it yields an Invalid Date, not null.
+        const gazetteDate = parseGazetteDate(entry.gazette_date);
+        if (gazetteDate) setFieldValue("gazette_notification_date", gazetteDate);
+    };
 
     const validateForm = async (values: FormValues) => {
         const errors: Record<string, string> = {};
@@ -179,6 +278,12 @@ const QRForm: React.FC = () => {
             if (!values.gazette_notification_date) {
                 errors.gazette_notification_date = "Gazette Date is required";
             }
+
+            // The Autocomplete is not freeSolo, so typed-but-unselected text
+            // never reaches the field — this is what surfaces that to the user.
+            if (!values.biostimulant_title?.trim()) {
+                errors.biostimulant_title = "Select a gazette product";
+            }
         }
 
         return errors;
@@ -188,17 +293,29 @@ const QRForm: React.FC = () => {
         const selectedProduct = products.find((product) => product.uuid === values.product_master_uuid);
         const isBiostimulantCategory = getProductCategoryLabel(selectedProduct?.category) === "Biostimulants";
         const isBiopesticideCategory = getProductCategoryLabel(selectedProduct?.category) === "Bio Pesticides";
+
+        // Structured gazette rows are JSON-encoded into the existing string
+        // field; when there are none we keep whatever free text was entered.
+        const encodedComposition = (composition.length > 0 || specifications.length > 0)
+            ? encodeComposition({ composition, specifications })
+            : values.biostimulant_composition;
+
+        // Formatting an invalid Dayjs yields the literal string "Invalid Date",
+        // which must never be sent to the API.
+        const asApiDate = (value: Dayjs | null) =>
+            value?.isValid() ? value.format('YYYY-MM-DD') : null;
+
         const payload = {
             ...values,
             gazette_notification_number: isBiostimulantCategory ? values.gazette_notification_number : "",
-            gazette_notification_date: isBiostimulantCategory ? values.gazette_notification_date?.format('YYYY-MM-DD') : null,
-            manufacturing_date: values.type === 'static' ? values.manufacturing_date?.format('YYYY-MM-DD') : null,
-            expiry_date: values.type === 'static' ? values.expiry_date?.format('YYYY-MM-DD') : null,
+            gazette_notification_date: isBiostimulantCategory ? asApiDate(values.gazette_notification_date) : null,
+            manufacturing_date: values.type === 'static' ? asApiDate(values.manufacturing_date) : null,
+            expiry_date: values.type === 'static' ? asApiDate(values.expiry_date) : null,
             batch_name: values.type === 'static' ? values.batch_name : "",
             gtin: isBiopesticideCategory ? values.gtin : "",
             web_link: isBiopesticideCategory ? values.web_link : "",
             description: isBiopesticideCategory ? "" : values.description,
-            biostimulant_composition: isBiopesticideCategory ? "" : values.biostimulant_composition,
+            biostimulant_composition: isBiopesticideCategory ? "" : encodedComposition,
             crops: isBiopesticideCategory ? "" : values.crops,
             doses: isBiopesticideCategory ? "" : values.doses,
             application_method: isBiopesticideCategory ? "" : values.application_method,
@@ -303,6 +420,16 @@ const QRForm: React.FC = () => {
                                                     setFieldValue("product_master_uuid", val ? val.uuid : "");
                                                     // Auto-fill company name if product is selected
                                                     if (val?.company_name) setFieldValue("company_name", val.company_name);
+
+                                                    // Drop gazette-sourced data when the new product is not a
+                                                    // Biostimulant, so a non-biostimulant QR can never submit an
+                                                    // encoded composition it never displayed.
+                                                    if (getProductCategoryLabel(val?.category) !== "Biostimulants") {
+                                                        setSelectedGazette(null);
+                                                        setComposition([]);
+                                                        setSpecifications([]);
+                                                        setGazetteOptions([]);
+                                                    }
                                                 }}
                                                 renderInput={(params) => (
                                                     <TextField {...params}
@@ -420,6 +547,50 @@ const QRForm: React.FC = () => {
                                     </Stack>
 
                                     <Grid container spacing={3}>
+                                        {/* Title leads the section. For Biostimulants it is a strict
+                                            gazette lookup; every other category keeps free text. */}
+                                        <Grid item xs={12}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>{categoryLabel} Title</Typography>
+                                            {isBiostimulantCategory ? (
+                                                <Autocomplete
+                                                    options={gazetteOptions}
+                                                    loading={gazetteLoading}
+                                                    value={selectedGazette}
+                                                    getOptionLabel={(option) => option?.product_name || ""}
+                                                    isOptionEqualToValue={(option, val) => option.id === val.id}
+                                                    filterOptions={(options) => options}
+                                                    noOptionsText="No matching gazette products"
+                                                    onOpen={() => { if (gazetteOptions.length === 0) fetchGazette(); }}
+                                                    onInputChange={(_, val, reason) => handleGazetteInputChange(val, reason)}
+                                                    onChange={(_, entry) => handleGazetteSelect(entry, setFieldValue)}
+                                                    renderInput={(params) => (
+                                                        <TextField
+                                                            {...params}
+                                                            placeholder="Search gazette products..."
+                                                            error={touched.biostimulant_title && !!errors.biostimulant_title}
+                                                            helperText={(touched.biostimulant_title && errors.biostimulant_title) || "Select an official gazette product"}
+                                                            sx={inputStyles}
+                                                            InputProps={{
+                                                                ...params.InputProps,
+                                                                endAdornment: (
+                                                                    <>
+                                                                        {gazetteLoading ? <CircularProgress color="inherit" size={18} /> : null}
+                                                                        {params.InputProps.endAdornment}
+                                                                    </>
+                                                                ),
+                                                            }}
+                                                        />
+                                                    )}
+                                                />
+                                            ) : (
+                                                <TextField
+                                                    fullWidth name="biostimulant_title"
+                                                    placeholder="Enter official title..."
+                                                    value={values.biostimulant_title} onChange={handleChange}
+                                                    sx={inputStyles}
+                                                />
+                                            )}
+                                        </Grid>
                                         {isBiostimulantCategory && (
                                             <>
                                                 <Grid item xs={12} md={6}>
@@ -443,27 +614,39 @@ const QRForm: React.FC = () => {
                                                 </Grid>
                                             </>
                                         )}
-                                        <Grid item xs={12}>
-                                            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>{categoryLabel} Title</Typography>
-                                            <TextField
-                                                fullWidth name="biostimulant_title"
-                                                placeholder="Enter official title..."
-                                                value={values.biostimulant_title} onChange={handleChange}
-                                                sx={inputStyles}
-                                            />
-                                        </Grid>
                                         {!isBiopesticideCategory && (
                                             <>
-                                                <Grid item xs={12}>
-                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Composition of {categoryLabel}</Typography>
-                                                    <TextField
-                                                        fullWidth multiline rows={3}
-                                                        name="biostimulant_composition"
-                                                        placeholder="List active ingredients..."
-                                                        value={values.biostimulant_composition} onChange={handleChange}
-                                                        sx={inputStyles}
-                                                    />
-                                                </Grid>
+                                                {hasStructuredComposition ? (
+                                                    <>
+                                                        <Grid item xs={12}>
+                                                            <DetailTable
+                                                                title={`Composition of ${categoryLabel}`}
+                                                                keyHeader="Ingredient"
+                                                                valueHeader="Content"
+                                                                rows={composition.map((row) => ({ key: row.ingredient, value: row.content }))}
+                                                            />
+                                                        </Grid>
+                                                        <Grid item xs={12}>
+                                                            <DetailTable
+                                                                title="Specifications"
+                                                                keyHeader="Parameter"
+                                                                valueHeader="Value"
+                                                                rows={specifications.map((row) => ({ key: row.parameter, value: row.value }))}
+                                                            />
+                                                        </Grid>
+                                                    </>
+                                                ) : (
+                                                    <Grid item xs={12}>
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Composition of {categoryLabel}</Typography>
+                                                        <TextField
+                                                            fullWidth multiline rows={3}
+                                                            name="biostimulant_composition"
+                                                            placeholder="List active ingredients..."
+                                                            value={values.biostimulant_composition} onChange={handleChange}
+                                                            sx={inputStyles}
+                                                        />
+                                                    </Grid>
+                                                )}
                                                 <Grid item xs={12} md={4}>
                                                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Target Crops</Typography>
                                                     <TextField
