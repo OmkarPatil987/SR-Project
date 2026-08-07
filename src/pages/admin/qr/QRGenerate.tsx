@@ -25,7 +25,7 @@ import { RootState } from "../../../redux/store";
 import PageHead from "../../../components/common/page/PageHead";
 import { FetchProductListService, FetchQRDetailsService, StoreQRService, UpdateQRService, FetchProductsGazetteListService, FetchCompanyDetailsService } from "../../../utils/services/product.service";
 import { getProductCategoryLabel, getProductCategorySingularLabel } from "../../../utils/productCategory";
-import DetailTable from "../../../components/common/DetailTable";
+import EditableDetailTable from "../../../components/common/EditableDetailTable";
 import {
     GazetteEntry, CompositionRow, SpecificationRow,
     extractCrops, extractDoses, resolveProductComposition, parseGazetteDate
@@ -126,7 +126,13 @@ const QRForm: React.FC = () => {
     const [composition, setComposition] = useState<CompositionRow[]>([]);
     const [specifications, setSpecifications] = useState<SpecificationRow[]>([]);
 
-    const hasStructuredComposition = composition.length > 0 || specifications.length > 0;
+    /**
+     * Whether the editable tables are shown in place of the free-text field.
+     * Held as state rather than derived from the row counts: an operator who
+     * deletes every row would otherwise be dropped back into the textarea with
+     * no way to add a row again.
+     */
+    const [useStructuredTables, setUseStructuredTables] = useState(false);
 
     // Guards the autocomplete race: a slow response for "Bio" must not land
     // after a fast one for "Bioventa" and repopulate the list with stale options.
@@ -222,6 +228,9 @@ const QRForm: React.FC = () => {
                         const resolved = resolveProductComposition(detail);
                         setComposition(resolved.composition);
                         setSpecifications(resolved.specifications);
+                        setUseStructuredTables(
+                            resolved.composition.length > 0 || resolved.specifications.length > 0
+                        );
 
                         // Pre-seed the autocomplete so the saved title shows on edit.
                         if (detail?.biostimulant_title) {
@@ -280,12 +289,20 @@ const QRForm: React.FC = () => {
             setFieldValue("gazette_sr_no", "");
             setComposition([]);
             setSpecifications([]);
+            setUseStructuredTables(false);
             return;
         }
 
         setFieldValue("biostimulant_title", entry.product_name || "");
-        setComposition(Array.isArray(entry.composition) ? entry.composition : []);
-        setSpecifications(Array.isArray(entry.specifications) ? entry.specifications : []);
+
+        const entryComposition = Array.isArray(entry.composition) ? entry.composition : [];
+        const entrySpecifications = Array.isArray(entry.specifications) ? entry.specifications : [];
+
+        setComposition(entryComposition);
+        setSpecifications(entrySpecifications);
+        // A gazette record with neither array leaves the free-text field in
+        // place, so a category with no gazette backing is still fillable.
+        setUseStructuredTables(entryComposition.length > 0 || entrySpecifications.length > 0);
 
         const crops = extractCrops(entry);
         if (crops) setFieldValue("crops", crops);
@@ -357,6 +374,16 @@ const QRForm: React.FC = () => {
         const asApiDate = (value: Dayjs | null) =>
             value?.isValid() ? value.format('YYYY-MM-DD') : null;
 
+        // Trimmed, and rows left completely blank are dropped — an empty row is
+        // easy to add by accident and would print as a gap on the scan page.
+        const editedComposition = composition
+            .map((row) => ({ ingredient: row.ingredient.trim(), content: row.content.trim() }))
+            .filter((row) => row.ingredient || row.content);
+
+        const editedSpecifications = specifications
+            .map((row) => ({ parameter: row.parameter.trim(), value: row.value.trim() }))
+            .filter((row) => row.parameter || row.value);
+
         const payload = {
             ...values,
             gazette_notification_number: isBiostimulantCategory ? values.gazette_notification_number : "",
@@ -376,8 +403,8 @@ const QRForm: React.FC = () => {
             // Sent as arrays rather than omitted when empty: clearing a gazette
             // selection has to overwrite what was stored, and an absent key
             // would leave the previous rows in place.
-            biostimulant_composition_new: isBiopesticideCategory ? [] : composition,
-            biostimulant_specification: isBiopesticideCategory ? [] : specifications,
+            biostimulant_composition_new: isBiopesticideCategory ? [] : editedComposition,
+            biostimulant_specification: isBiopesticideCategory ? [] : editedSpecifications,
             crops: isBiopesticideCategory ? "" : values.crops,
             doses: isBiopesticideCategory ? "" : values.doses,
             application_method: isBiopesticideCategory ? "" : values.application_method,
@@ -504,6 +531,7 @@ const QRForm: React.FC = () => {
                                                         setSelectedGazette(null);
                                                         setComposition([]);
                                                         setSpecifications([]);
+                                                        setUseStructuredTables(false);
                                                         setGazetteOptions([]);
                                                     }
                                                 }}
@@ -759,22 +787,31 @@ const QRForm: React.FC = () => {
                                         )}
                                         {!isBiopesticideCategory && (
                                             <>
-                                                {hasStructuredComposition ? (
+                                                {useStructuredTables ? (
                                                     <>
+                                                        {/* Pre-filled from the gazette record but editable —
+                                                            the dataset carries the occasional stale figure and
+                                                            the QR is what a farmer actually reads. */}
                                                         <Grid item xs={12}>
-                                                            <DetailTable
+                                                            <EditableDetailTable
                                                                 title={`Composition of ${categoryLabel}`}
                                                                 keyHeader="Ingredient"
                                                                 valueHeader="Content"
                                                                 rows={composition.map((row) => ({ key: row.ingredient, value: row.content }))}
+                                                                onChange={(rows) => setComposition(rows.map((row) => ({ ingredient: row.key, content: row.value })))}
+                                                                addRowLabel="Add ingredient"
+                                                                emptyHint="No ingredients — add one below."
                                                             />
                                                         </Grid>
                                                         <Grid item xs={12}>
-                                                            <DetailTable
+                                                            <EditableDetailTable
                                                                 title="Specifications"
                                                                 keyHeader="Parameter"
                                                                 valueHeader="Value"
                                                                 rows={specifications.map((row) => ({ key: row.parameter, value: row.value }))}
+                                                                onChange={(rows) => setSpecifications(rows.map((row) => ({ parameter: row.key, value: row.value })))}
+                                                                addRowLabel="Add specification"
+                                                                emptyHint="No specifications — add one below."
                                                             />
                                                         </Grid>
                                                     </>
