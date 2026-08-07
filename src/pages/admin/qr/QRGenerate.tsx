@@ -13,21 +13,22 @@ import {
 } from "@mui/material";
 import {
     ArrowBack, InfoOutlined, GavelOutlined,
-    ChevronRight, Sync, QrCode2
+    ChevronRight, Sync, QrCode2, OpenInNew, VerifiedOutlined
 } from "@mui/icons-material";
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 // Redux & Services
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
+import { RootState } from "../../../redux/store";
 import PageHead from "../../../components/common/page/PageHead";
-import { FetchProductListService, FetchQRDetailsService, StoreQRService, UpdateQRService, FetchProductsGazetteListService } from "../../../utils/services/product.service";
+import { FetchProductListService, FetchQRDetailsService, StoreQRService, UpdateQRService, FetchProductsGazetteListService, FetchCompanyDetailsService } from "../../../utils/services/product.service";
 import { getProductCategoryLabel, getProductCategorySingularLabel } from "../../../utils/productCategory";
 import DetailTable from "../../../components/common/DetailTable";
 import {
     GazetteEntry, CompositionRow, SpecificationRow,
-    extractCrops, extractDoses, encodeComposition, decodeComposition, parseGazetteDate
+    extractCrops, extractDoses, resolveProductComposition, parseGazetteDate
 } from "../../../utils/gazette";
 
 interface FormValues {
@@ -38,6 +39,8 @@ interface FormValues {
     web_link: string;
     gazette_notification_number: string;
     gazette_notification_date: Dayjs | null;
+    gazette_sr_no: string;
+    gr_pdf_link: string;
     biostimulant_title: string;
     biostimulant_composition: string;
     crops: string;
@@ -92,6 +95,8 @@ const QRForm: React.FC = () => {
         web_link: "",
         gazette_notification_number: "",
         gazette_notification_date: null,
+        gazette_sr_no: "",
+        gr_pdf_link: "",
         biostimulant_title: "",
         biostimulant_composition: "",
         crops: "",
@@ -106,6 +111,13 @@ const QRForm: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [products, setProducts] = useState<any[]>([]);
+
+    // Address captured at company registration. Seeds Manufacturer Details,
+    // which stays editable — the manufacturing site is not always the
+    // registered office.
+    const authUser = useSelector((state: RootState) => state.authUser);
+    const sessionCompanyUuid = authUser?.userDetails?.company_uuid;
+    const [companyAddress, setCompanyAddress] = useState("");
 
     // Gazette lookup state (Biostimulants only)
     const [gazetteOptions, setGazetteOptions] = useState<GazetteEntry[]>([]);
@@ -125,12 +137,27 @@ const QRForm: React.FC = () => {
         const requestId = ++gazetteRequestRef.current;
         setGazetteLoading(true);
         try {
-            const payload: any = productName?.trim()
-                ? { offset: 0, limit: 20, product_name: productName.trim() }
+            const term = productName?.trim() ?? "";
+            // A wider page on search: the client-side filter below is only able
+            // to narrow what the server actually returned, so a match sitting
+            // past the page boundary would otherwise be unreachable.
+            const payload: any = term
+                ? { offset: 0, limit: 100, product_name: term }
                 : { offset: 0, limit: 5 };
             const { code, data } = await FetchProductsGazetteListService(payload);
             if (requestId !== gazetteRequestRef.current) return; // superseded
-            setGazetteOptions(code === 200 && Array.isArray(data?.data) ? data.data : []);
+            const entries: GazetteEntry[] = code === 200 && Array.isArray(data?.data) ? data.data : [];
+
+            // Re-apply the term locally. `filterOptions` is disabled on the
+            // Autocomplete so the list is exactly what this sets — and the
+            // endpoint has been seen returning the unfiltered set, which made
+            // the dropdown show every gazette record whatever was typed.
+            const needle = term.toLowerCase();
+            setGazetteOptions(
+                needle
+                    ? entries.filter((entry) => (entry.product_name || "").toLowerCase().includes(needle))
+                    : entries
+            );
         } catch {
             if (requestId === gazetteRequestRef.current) setGazetteOptions([]);
         } finally {
@@ -161,25 +188,40 @@ const QRForm: React.FC = () => {
 
     useEffect(() => {
         const fetchInitialData = async () => {
+            // Held through the whole fetch so the form mounts once, with the
+            // registered address already folded into initialValues. Prefilling
+            // afterwards would re-initialise Formik and discard anything typed
+            // in the meantime.
+            setLoading(true);
             try {
-                const { code, data } = await FetchProductListService({ offset: 0, limit: 1000 });
+                const [productRes, companyRes] = await Promise.all([
+                    FetchProductListService({ offset: 0, limit: 1000 }),
+                    sessionCompanyUuid
+                        ? FetchCompanyDetailsService({ company_uuid: sessionCompanyUuid })
+                        : Promise.resolve(null),
+                ]);
+
+                const { code, data } = productRes;
                 if (code === 200 && data?.data) setProducts(data.data);
 
+                const registeredAddress =
+                    (companyRes?.code === 200 ? companyRes.data?.address : "") || "";
+                setCompanyAddress(registeredAddress);
+
                 if (isEdit && (qrUuidParam || uuid)) {
-                    setLoading(true);
                     const res = await FetchQRDetailsService({ qr_uuid: qrUuidParam || uuid });
                     if (res.code === 200 && res.data) {
                         // MAPPING BASED ON YOUR PROVIDED JSON STRUCTURE
                         const detail = res.data.product_detail;
                         const master = res.data.product_master;
 
-                        // Structured composition round-trips through the same
-                        // string field; legacy prose falls back to the textarea.
-                        const decoded = decodeComposition(detail?.biostimulant_composition);
-                        if (decoded.kind === "structured") {
-                            setComposition(decoded.composition);
-                            setSpecifications(decoded.specifications);
-                        }
+                        // Reads the API's array fields when present and falls
+                        // back to whatever the legacy string holds, so a QR
+                        // saved before those fields existed still opens with
+                        // its composition intact.
+                        const resolved = resolveProductComposition(detail);
+                        setComposition(resolved.composition);
+                        setSpecifications(resolved.specifications);
 
                         // Pre-seed the autocomplete so the saved title shows on edit.
                         if (detail?.biostimulant_title) {
@@ -196,24 +238,30 @@ const QRForm: React.FC = () => {
                             // Tolerates both the stored ISO form and any
                             // human-readable value saved before the parser existed.
                             gazette_notification_date: parseGazetteDate(detail?.gazette_notification_date),
+                            gazette_sr_no: detail?.gazette_sr_no || "",
+                            gr_pdf_link: detail?.gr_pdf_link || "",
                             biostimulant_title: detail?.biostimulant_title || "",
                             // Holds only the free-text form; structured rows live in component state.
-                            biostimulant_composition: decoded.kind === "text" ? decoded.value : "",
+                            biostimulant_composition: resolved.legacyText,
                             crops: detail?.crops || "",
                             doses: detail?.doses || "",
                             application_method: detail?.application_method || "",
-                            manufacturer_details: detail?.manufacturer_details || "",
+                            // Saved value wins; the registered address only fills
+                            // a QR stored before this field was auto-populated.
+                            manufacturer_details: detail?.manufacturer_details || registeredAddress,
                             company_name: detail?.company_name || "",
                             batch_name: detail?.batch_name || "",
                             manufacturing_date: detail?.manufacturing_date ? dayjs(detail.manufacturing_date) : null,
                             expiry_date: detail?.expiry_date ? dayjs(detail.expiry_date) : null,
                         });
                     }
+                } else if (registeredAddress) {
+                    setInitialValues((prev) => ({ ...prev, manufacturer_details: registeredAddress }));
                 }
             } finally { setLoading(false); }
         };
         fetchInitialData();
-    }, [isEdit, qrUuidParam, uuid]);
+    }, [isEdit, qrUuidParam, uuid, sessionCompanyUuid]);
 
     /**
      * Applies a chosen gazette record to the form. Crops and Doses are filled
@@ -229,6 +277,7 @@ const QRForm: React.FC = () => {
 
         if (!entry) {
             setFieldValue("biostimulant_title", "");
+            setFieldValue("gazette_sr_no", "");
             setComposition([]);
             setSpecifications([]);
             return;
@@ -245,6 +294,15 @@ const QRForm: React.FC = () => {
         if (dose) setFieldValue("doses", dose);
 
         if (entry.gazette_no) setFieldValue("gazette_notification_number", entry.gazette_no);
+
+        // Written unconditionally: the Sr No. identifies the row within the
+        // gazette, so carrying the previous product's value over would be worse
+        // than showing it blank.
+        setFieldValue("gazette_sr_no", entry.gazette_sr_no || "");
+
+        // Only filled when the dataset carries it — the field stays hand-editable
+        // otherwise, so a null must not wipe a link the operator pasted.
+        if (entry.gr_pdf_link) setFieldValue("gr_pdf_link", entry.gr_pdf_link);
 
         // The API returns human-readable dates ("25th March, 2026"), which
         // plain dayjs() cannot parse — it yields an Invalid Date, not null.
@@ -294,12 +352,6 @@ const QRForm: React.FC = () => {
         const isBiostimulantCategory = getProductCategoryLabel(selectedProduct?.category) === "Biostimulants";
         const isBiopesticideCategory = getProductCategoryLabel(selectedProduct?.category) === "Bio Pesticides";
 
-        // Structured gazette rows are JSON-encoded into the existing string
-        // field; when there are none we keep whatever free text was entered.
-        const encodedComposition = (composition.length > 0 || specifications.length > 0)
-            ? encodeComposition({ composition, specifications })
-            : values.biostimulant_composition;
-
         // Formatting an invalid Dayjs yields the literal string "Invalid Date",
         // which must never be sent to the API.
         const asApiDate = (value: Dayjs | null) =>
@@ -309,13 +361,23 @@ const QRForm: React.FC = () => {
             ...values,
             gazette_notification_number: isBiostimulantCategory ? values.gazette_notification_number : "",
             gazette_notification_date: isBiostimulantCategory ? asApiDate(values.gazette_notification_date) : null,
+            gazette_sr_no: isBiostimulantCategory ? values.gazette_sr_no : "",
+            gr_pdf_link: isBiostimulantCategory ? values.gr_pdf_link : "",
             manufacturing_date: values.type === 'static' ? asApiDate(values.manufacturing_date) : null,
             expiry_date: values.type === 'static' ? asApiDate(values.expiry_date) : null,
             batch_name: values.type === 'static' ? values.batch_name : "",
             gtin: isBiopesticideCategory ? values.gtin : "",
             web_link: isBiopesticideCategory ? values.web_link : "",
             description: isBiopesticideCategory ? "" : values.description,
-            biostimulant_composition: isBiopesticideCategory ? "" : encodedComposition,
+            // Structured rows now go to their own array fields. The legacy
+            // string carries only hand-typed prose, which is all that is left
+            // in it once a gazette record has been selected.
+            biostimulant_composition: isBiopesticideCategory ? "" : values.biostimulant_composition,
+            // Sent as arrays rather than omitted when empty: clearing a gazette
+            // selection has to overwrite what was stored, and an absent key
+            // would leave the previous rows in place.
+            biostimulant_composition_new: isBiopesticideCategory ? [] : composition,
+            biostimulant_specification: isBiopesticideCategory ? [] : specifications,
             crops: isBiopesticideCategory ? "" : values.crops,
             doses: isBiopesticideCategory ? "" : values.doses,
             application_method: isBiopesticideCategory ? "" : values.application_method,
@@ -421,6 +483,20 @@ const QRForm: React.FC = () => {
                                                     // Auto-fill company name if product is selected
                                                     if (val?.company_name) setFieldValue("company_name", val.company_name);
 
+                                                    // Admins have no company on the session, so the address
+                                                    // has to come from the product's own company. Only fills
+                                                    // an empty field — a typed address is never overwritten.
+                                                    const productCompanyUuid = val?.company_uuid || val?.company?.uuid;
+                                                    if (productCompanyUuid && !values.manufacturer_details) {
+                                                        FetchCompanyDetailsService({ company_uuid: productCompanyUuid })
+                                                            .then(({ code, data }) => {
+                                                                if (code === 200 && data?.address) {
+                                                                    setFieldValue("manufacturer_details", data.address);
+                                                                }
+                                                            })
+                                                            .catch(() => { /* leave the field for manual entry */ });
+                                                    }
+
                                                     // Drop gazette-sourced data when the new product is not a
                                                     // Biostimulant, so a non-biostimulant QR can never submit an
                                                     // encoded composition it never displayed.
@@ -524,12 +600,26 @@ const QRForm: React.FC = () => {
                                                     />
                                                 </Grid>
                                                 <Grid item xs={12}>
-                                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Manufacturer Details</Typography>
+                                                    <Stack direction="row" alignItems="center" justifyContent="space-between" mb={1}>
+                                                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Manufacturer Details</Typography>
+                                                        {companyAddress && companyAddress !== values.manufacturer_details && (
+                                                            <Link
+                                                                component="button"
+                                                                type="button"
+                                                                underline="hover"
+                                                                onClick={() => setFieldValue("manufacturer_details", companyAddress)}
+                                                                sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#4c9a74' }}
+                                                            >
+                                                                Use registered address
+                                                            </Link>
+                                                        )}
+                                                    </Stack>
                                                     <TextField
                                                         fullWidth multiline rows={2}
                                                         name="manufacturer_details"
                                                         placeholder="Enter full manufacturing address..."
                                                         value={values.manufacturer_details} onChange={handleChange}
+                                                        helperText="Pre-filled from your company registration — edit if the manufacturing site differs"
                                                         sx={inputStyles}
                                                     />
                                                 </Grid>
@@ -611,6 +701,59 @@ const QRForm: React.FC = () => {
                                                         onChange={(val) => setFieldValue("gazette_notification_date", val)}
                                                         slotProps={{ textField: { fullWidth: true, placeholder: "Select date", sx: inputStyles, error: touched.gazette_notification_date && !!errors.gazette_notification_date, helperText: touched.gazette_notification_date && (errors.gazette_notification_date as string) } }}
                                                     />
+                                                </Grid>
+                                                {/* Verification only. Both values come from the gazette
+                                                    record and are never typed — they exist so the operator
+                                                    can check the auto-filled details against the official
+                                                    notification. Neither reaches the live page. */}
+                                                <Grid item xs={12}>
+                                                    <Box sx={{ p: 2.5, borderRadius: 2, border: '1px solid #e0e0e0', bgcolor: '#f6f8f7' }}>
+                                                        <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+                                                            <VerifiedOutlined sx={{ color: '#4c9a74', fontSize: 20 }} />
+                                                            <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Gazette Verification</Typography>
+                                                        </Stack>
+
+                                                        <Stack
+                                                            direction={{ xs: 'column', sm: 'row' }}
+                                                            spacing={{ xs: 2, sm: 6 }}
+                                                            alignItems={{ xs: 'flex-start', sm: 'center' }}
+                                                        >
+                                                            <Box>
+                                                                <Typography variant="caption" sx={{ color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block' }}>
+                                                                    Product Sr No. in Gazette
+                                                                </Typography>
+                                                                <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                                                                    {values.gazette_sr_no || '—'}
+                                                                </Typography>
+                                                            </Box>
+
+                                                            <Box>
+                                                                <Typography variant="caption" sx={{ color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block' }}>
+                                                                    GR PDF
+                                                                </Typography>
+                                                                {values.gr_pdf_link ? (
+                                                                    <Link
+                                                                        href={values.gr_pdf_link}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontWeight: 800, fontSize: '0.875rem', color: '#4c9a74' }}
+                                                                    >
+                                                                        Open GR PDF <OpenInNew sx={{ fontSize: 14 }} />
+                                                                    </Link>
+                                                                ) : (
+                                                                    <Typography variant="body2" sx={{ fontWeight: 800, color: '#999' }}>
+                                                                        Not available
+                                                                    </Typography>
+                                                                )}
+                                                            </Box>
+                                                        </Stack>
+
+                                                        <Typography variant="caption" sx={{ color: '#888', display: 'block', mt: 2 }}>
+                                                            {selectedGazette
+                                                                ? 'Reference only — not shown on the live page.'
+                                                                : 'Select a gazette product above to load these details.'}
+                                                        </Typography>
+                                                    </Box>
                                                 </Grid>
                                             </>
                                         )}

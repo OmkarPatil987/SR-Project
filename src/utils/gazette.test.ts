@@ -1,4 +1,8 @@
-import { flattenDose, extractCrops, extractDoses, encodeComposition, decodeComposition, parseGazetteDate, GazetteEntry } from './gazette';
+import {
+    flattenDose, extractCrops, extractDoses, encodeComposition, decodeComposition,
+    parseGazetteDate, GazetteEntry, normalizeCompositionRows, normalizeSpecificationRows,
+    resolveProductComposition,
+} from './gazette';
 
 describe('parseGazetteDate', () => {
     it('parses the human-readable format the API actually returns', () => {
@@ -174,5 +178,102 @@ describe('encode/decode round-trip', () => {
     it('encodes empty arrays to an empty string rather than a hollow envelope', () => {
         expect(encodeComposition({ composition: [], specifications: [] })).toBe('');
         expect(decodeComposition('')).toEqual({ kind: 'text', value: '' });
+    });
+});
+
+describe('normalizeSpecificationRows', () => {
+    it('reads the shape the API returns', () => {
+        const raw = [
+            { value: '3.0', parameter: 'Free amino acids per cent. by weight, minimum' },
+            { value: '7.5 - 8.5', parameter: 'pH (10% aqueous solution)' },
+        ];
+
+        expect(normalizeSpecificationRows(raw)).toEqual([
+            { parameter: 'Free amino acids per cent. by weight, minimum', value: '3.0' },
+            { parameter: 'pH (10% aqueous solution)', value: '7.5 - 8.5' },
+        ]);
+    });
+
+    it('stringifies numeric values rather than dropping them', () => {
+        // The field is typed Dict[str, Any], so 45 and "45" both arrive.
+        expect(normalizeSpecificationRows([{ parameter: 'Total organic carbon', value: 45 }]))
+            .toEqual([{ parameter: 'Total organic carbon', value: '45' }]);
+    });
+
+    it('drops rows that would render as a blank line', () => {
+        const raw = [{ parameter: 'Solubility', value: '90' }, {}, null, 'nonsense', { parameter: '', value: '' }];
+        expect(normalizeSpecificationRows(raw)).toEqual([{ parameter: 'Solubility', value: '90' }]);
+    });
+
+    it('returns an empty array for null, undefined and non-array input', () => {
+        expect(normalizeSpecificationRows(null)).toEqual([]);
+        expect(normalizeSpecificationRows(undefined)).toEqual([]);
+        expect(normalizeSpecificationRows('not an array')).toEqual([]);
+    });
+});
+
+describe('normalizeCompositionRows', () => {
+    it('reads ingredient/content rows', () => {
+        const raw = [{ ingredient: 'Seaweed extract', content: '21' }, { ingredient: 'Water', content: 76 }];
+        expect(normalizeCompositionRows(raw)).toEqual([
+            { ingredient: 'Seaweed extract', content: '21' },
+            { ingredient: 'Water', content: '76' },
+        ]);
+    });
+
+    it('returns an empty array for a missing field', () => {
+        expect(normalizeCompositionRows(undefined)).toEqual([]);
+    });
+});
+
+describe('resolveProductComposition', () => {
+    it('prefers the API array fields', () => {
+        const result = resolveProductComposition({
+            biostimulant_composition_new: [{ ingredient: 'Seaweed extract', content: '21' }],
+            biostimulant_specification: [{ parameter: 'pH', value: '7.5 - 8.5' }],
+            biostimulant_composition: 'stale prose that must not win',
+        });
+
+        expect(result.composition).toEqual([{ ingredient: 'Seaweed extract', content: '21' }]);
+        expect(result.specifications).toEqual([{ parameter: 'pH', value: '7.5 - 8.5' }]);
+        expect(result.legacyText).toBe('');
+    });
+
+    it('takes specifications alone when composition is empty', () => {
+        const result = resolveProductComposition({
+            biostimulant_composition_new: [],
+            biostimulant_specification: [{ parameter: 'Specific gravity', value: '1.01 - 1.11' }],
+        });
+
+        expect(result.composition).toEqual([]);
+        expect(result.specifications).toHaveLength(1);
+        expect(result.legacyText).toBe('');
+    });
+
+    it('falls back to the legacy JSON envelope', () => {
+        const encoded = encodeComposition({
+            composition: [{ ingredient: 'Water', content: '76' }],
+            specifications: [{ parameter: 'Total carbohydrate', value: '7.50' }],
+        });
+
+        const result = resolveProductComposition({ biostimulant_composition: encoded });
+        expect(result.composition).toEqual([{ ingredient: 'Water', content: '76' }]);
+        expect(result.specifications).toEqual([{ parameter: 'Total carbohydrate', value: '7.50' }]);
+        expect(result.legacyText).toBe('');
+    });
+
+    it('falls back to legacy prose', () => {
+        const result = resolveProductComposition({
+            biostimulant_composition: 'Humic acid 12%, Fulvic acid 3%',
+        });
+
+        expect(result.composition).toEqual([]);
+        expect(result.specifications).toEqual([]);
+        expect(result.legacyText).toBe('Humic acid 12%, Fulvic acid 3%');
+    });
+
+    it('handles an empty record and a missing detail without throwing', () => {
+        expect(resolveProductComposition({})).toEqual({ composition: [], specifications: [], legacyText: '' });
+        expect(resolveProductComposition(null)).toEqual({ composition: [], specifications: [], legacyText: '' });
     });
 });

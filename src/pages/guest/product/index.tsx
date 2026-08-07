@@ -26,7 +26,7 @@ import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
 import { GuestProductDetailsService } from '../../../utils/services/guest.service';
 import dayjs from 'dayjs';
 import { getProductCategoryLabel, getProductCategorySingularLabel } from '../../../utils/productCategory';
-import { decodeComposition } from '../../../utils/gazette';
+import { resolveProductComposition } from '../../../utils/gazette';
 import DetailTable from '../../../components/common/DetailTable';
 
 // --- Interfaces based on new API structure ---
@@ -60,7 +60,15 @@ interface ProductDetail {
     gazette_notification_number: string;
     gazette_notification_date: string;
     biostimulant_title: string;
+    /** Legacy field: free prose, or the pre-array JSON envelope. */
     biostimulant_composition: string;
+    /**
+     * Current fields. Typed `unknown[]` because the API declares them as
+     * `List[Dict[str, Any]]` — they are validated in `resolveProductComposition`
+     * before anything is rendered from them.
+     */
+    biostimulant_composition_new?: unknown[];
+    biostimulant_specification?: unknown[];
     crops: string;
     doses: string;
     application_method: string;
@@ -137,15 +145,13 @@ const GuestProductDetail: React.FC = () => {
         ? dayjs(product_detail.gazette_notification_date).format('MMM DD, YYYY')
         : '';
 
-    // Composition may be gazette-encoded JSON or legacy prose — decode decides.
-    const decodedComposition = decodeComposition(product_detail.biostimulant_composition);
-    const compositionRows = decodedComposition.kind === 'structured'
-        ? decodedComposition.composition.map((row) => ({ key: row.ingredient, value: row.content }))
-        : [];
-    const specificationRows = decodedComposition.kind === 'structured'
-        ? decodedComposition.specifications.map((row) => ({ key: row.parameter, value: row.value }))
-        : [];
-    const legacyCompositionText = decodedComposition.kind === 'text' ? decodedComposition.value : '';
+    // Prefers the API's array fields, falling back to the legacy string for
+    // QRs stored before they existed. Exactly one of the tables and the prose
+    // row renders — `legacyText` is empty whenever structured rows were found.
+    const resolvedComposition = resolveProductComposition(product_detail);
+    const compositionRows = resolvedComposition.composition.map((row) => ({ key: row.ingredient, value: row.content }));
+    const specificationRows = resolvedComposition.specifications.map((row) => ({ key: row.parameter, value: row.value }));
+    const legacyCompositionText = resolvedComposition.legacyText;
 
     const createDetailItem = (label: string, value?: string | null) => {
         if (!value) return null;
@@ -210,6 +216,9 @@ const GuestProductDetail: React.FC = () => {
         ]
         : [];
 
+    // Rows shown ahead of the composition tables. Product Information and the
+    // batch dates are split into `trailingDetails` so the composition and
+    // specifications render before them.
     const primaryDetails = (
         isBiopesticideCategory
             ? [
@@ -222,17 +231,70 @@ const GuestProductDetail: React.FC = () => {
             : [
                 ...(isBiostimulantCategory ? [createDetailItem('Gazette No.', product_detail.gazette_notification_number)] : []),
                 ...(isBiostimulantCategory ? [createDetailItem('Gazette Date', gazetteDate)] : []),
-                createDetailItem(`Title of ${categorySingularLabel}`, product_detail.biostimulant_title || product_master.name),
+                // The Product Name chosen in Section 1 is the title of record;
+                // the gazette title is only a fallback for QRs saved without one.
+                createDetailItem(`Title of ${categorySingularLabel}`, product_master.name || product_detail.biostimulant_title),
                 // Structured composition renders as a table below, not as a row here.
                 createDetailItem(`Composition of ${categorySingularLabel}`, legacyCompositionText),
                 createDetailItem('Crops', product_detail.crops),
                 createDetailItem('Dosage', product_detail.doses),
                 createDetailItem('Application method', product_detail.application_method),
                 createDetailItem('Manufacturer details', product_detail.manufacturer_details),
+            ]
+    ).filter(Boolean) as { label: string; value: string }[];
+
+    const trailingDetails = (
+        isBiopesticideCategory
+            ? []
+            : [
                 createDetailItem('Product Information', product_detail.description),
                 ...dateDetails,
             ]
     ).filter(Boolean) as { label: string; value: string }[];
+
+    const hasCompositionTables = compositionRows.length > 0 || specificationRows.length > 0;
+    const totalDetailRows = primaryDetails.length + trailingDetails.length;
+
+    /**
+     * One row of the details card. `index` is the position across both row
+     * groups combined, so the zebra striping and the "last row has no border"
+     * rule stay correct with the composition tables sitting between them.
+     */
+    const renderDetailRow = (item: { label: string; value: string }, index: number) => {
+        const isLinkField = item.label === 'Website' || item.label.includes('Web Link');
+
+        return (
+            <Box
+                key={item.label}
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '280px 1fr' },
+                    gap: { xs: 0.5, sm: 2 },
+                    px: 2.5,
+                    py: 2,
+                    bgcolor: index % 2 === 0 ? 'grey.50' : 'white',
+                    borderBottom: index === totalDetailRows - 1 ? 'none' : '1px solid',
+                    borderColor: 'grey.200',
+                }}
+            >
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
+                    {item.label}
+                </Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
+                    <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                        {item.label === 'Product Information' || isLinkField ? renderTextWithLinks(item.value) : item.value}
+                    </Typography>
+                    {isLinkField && item.value && item.value !== '-' && (
+                        <Tooltip title="Copy link">
+                            <IconButton size="small" onClick={() => handleCopyLink(item.value)}>
+                                <ContentCopy fontSize="inherit" />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                </Stack>
+            </Box>
+        );
+    };
 
     const otherDetails = [
         createDetailItem('Category', categoryLabel),
@@ -257,25 +319,14 @@ const GuestProductDetail: React.FC = () => {
                         label={`Authenticated Code: ${product_master.product_code}`}
                         sx={{ bgcolor: alpha('#13ae47', 0.1), color: '#13ae47', fontWeight: 800, fontSize: '11px', mb: 2, height: 28 }}
                     />
-                    {isBiopesticideCategory ? (
-                        <>
-                            <Typography variant="h2" sx={{ fontWeight: 900, color: '#1a1a1a', letterSpacing: '-0.03em', mb: 1 }}>
-                                {company.company_name}
-                            </Typography>
-                            <Typography variant="subtitle1" sx={{ color: '#0f5132', fontWeight: 800, mb: 0.5 }}>
-                                {product_detail.biostimulant_title || product_master.name}
-                            </Typography>
-                        </>
-                    ) : (
-                        <>
-                            <Typography variant="h2" sx={{ fontWeight: 900, color: '#1a1a1a', letterSpacing: '-0.03em', mb: 1 }}>
-                                {product_detail.biostimulant_title || product_master.name}
-                            </Typography>
-                            <Typography variant="subtitle1" sx={{ color: '#0f5132', fontWeight: 800, mb: 0.5 }}>
-                                {company.company_name}
-                            </Typography>
-                        </>
-                    )}
+                    {/* Company name leads at h2 for every category; the product
+                        name sits below it as the smaller line. */}
+                    <Typography variant="h2" sx={{ fontWeight: 900, color: '#1a1a1a', letterSpacing: '-0.03em', mb: 1 }}>
+                        {company.company_name}
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ color: '#0f5132', fontWeight: 800, mb: 0.5 }}>
+                        {product_master.name || product_detail.biostimulant_title}
+                    </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
                         Secure product verification details
                     </Typography>
@@ -294,69 +345,48 @@ const GuestProductDetail: React.FC = () => {
                                     </Typography>
                                 </Stack>
                                 <Box sx={{ border: '1px solid', borderColor: 'grey.200', borderRadius: 2, overflow: 'hidden' }}>
-                                    {primaryDetails.map((item, index) => {
-                                        const isLinkField = item.label === 'Website' || item.label.includes('Web Link');
-                                        return (
-                                            <Box
-                                                key={item.label}
-                                                sx={{
-                                                    display: 'grid',
-                                                    gridTemplateColumns: { xs: '1fr', sm: '280px 1fr' },
-                                                    gap: { xs: 0.5, sm: 2 },
-                                                    px: 2.5,
-                                                    py: 2,
-                                                    bgcolor: index % 2 === 0 ? 'grey.50' : 'white',
-                                                    borderBottom: index === primaryDetails.length - 1 ? 'none' : '1px solid',
-                                                    borderColor: 'grey.200',
-                                                }}
-                                            >
-                                                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
-                                                    {item.label}
+                                    {primaryDetails.map(renderDetailRow)}
+
+                                    {/* Composition and specifications sit inside this card, ahead of
+                                        Product Information rather than in a card below it. */}
+                                    {hasCompositionTables && (
+                                        <Box
+                                            sx={{
+                                                px: 2.5,
+                                                py: 3,
+                                                bgcolor: 'white',
+                                                borderBottom: trailingDetails.length > 0 ? '1px solid' : 'none',
+                                                borderColor: 'grey.200',
+                                            }}
+                                        >
+                                            <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
+                                                <Box sx={{ width: 32, height: 32, bgcolor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#13ae47' }}>
+                                                    <Science fontSize="small" />
+                                                </Box>
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
+                                                    Composition &amp; Specifications
                                                 </Typography>
-                                                <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
-                                                    <Typography variant="body1" sx={{ fontWeight: 700, color: 'text.primary', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                                                        {item.label === 'Product Information' || isLinkField ? renderTextWithLinks(item.value) : item.value}
-                                                    </Typography>
-                                                    {isLinkField && item.value && item.value !== '-' && (
-                                                        <Tooltip title="Copy link">
-                                                            <IconButton size="small" onClick={() => handleCopyLink(item.value)}>
-                                                                <ContentCopy fontSize="inherit" />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    )}
-                                                </Stack>
-                                            </Box>
-                                        );
-                                    })}
+                                            </Stack>
+                                            <Stack spacing={3}>
+                                                <DetailTable
+                                                    title={`Composition of ${categorySingularLabel}`}
+                                                    keyHeader="Ingredient"
+                                                    valueHeader="Content"
+                                                    rows={compositionRows}
+                                                />
+                                                <DetailTable
+                                                    title="Specifications"
+                                                    keyHeader="Parameter"
+                                                    valueHeader="Value"
+                                                    rows={specificationRows}
+                                                />
+                                            </Stack>
+                                        </Box>
+                                    )}
+
+                                    {trailingDetails.map((item, index) => renderDetailRow(item, primaryDetails.length + index))}
                                 </Box>
                             </Paper>
-
-                            {(compositionRows.length > 0 || specificationRows.length > 0) && (
-                                <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
-                                    <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
-                                        <Box sx={{ width: 32, height: 32, bgcolor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#13ae47' }}>
-                                            <Science fontSize="small" />
-                                        </Box>
-                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
-                                            Composition &amp; Specifications
-                                        </Typography>
-                                    </Stack>
-                                    <Stack spacing={3}>
-                                        <DetailTable
-                                            title={`Composition of ${categorySingularLabel}`}
-                                            keyHeader="Ingredient"
-                                            valueHeader="Content"
-                                            rows={compositionRows}
-                                        />
-                                        <DetailTable
-                                            title="Specifications"
-                                            keyHeader="Parameter"
-                                            valueHeader="Value"
-                                            rows={specificationRows}
-                                        />
-                                    </Stack>
-                                </Paper>
-                            )}
 
                             {!isBiopesticideCategory && (
                                 <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>

@@ -1,12 +1,16 @@
 /**
- * Types and encode/decode helpers for the regulator's products-gazette dataset.
+ * Types and read/write helpers for the regulator's products-gazette dataset.
  *
- * The QR store/update API has no field for structured composition or
- * specifications, so both are JSON-encoded into the existing
- * `biostimulant_composition` string. Every screen that reads that field must
- * decode it through this module — a decoder that disagrees between the admin
- * form and the public scan page produces a QR that looks right to the person
- * who made it and wrong to the person who scans it.
+ * The QR API now carries structured composition and specifications as real
+ * arrays — `biostimulant_composition_new` and `biostimulant_specification`.
+ * Records written before those fields existed kept both JSON-encoded inside
+ * the `biostimulant_composition` string, and older ones still hold plain
+ * prose there. `resolveProductComposition` is the single place that decides
+ * between the three shapes.
+ *
+ * Every screen must resolve through this module — a reader that disagrees
+ * between the admin form and the public scan page produces a QR that looks
+ * right to the person who made it and wrong to the person who scans it.
  */
 
 import dayjs, { Dayjs } from "dayjs";
@@ -46,6 +50,13 @@ export interface GazetteEntry {
     gazette_no?: string | null;
     gazette_date?: string | null;
     gazette_sr_no?: string | null;
+    /**
+     * Link to the Government Resolution PDF the entry was notified under, so an
+     * operator can cross-verify what the form auto-filled. Optional: the
+     * dataset does not carry it for every record, and the form falls back to a
+     * manually entered link.
+     */
+    gr_pdf_link?: string | null;
     composition?: CompositionRow[] | null;
     specifications?: SpecificationRow[] | null;
     application_details?: GazetteApplicationDetails | null;
@@ -172,8 +183,11 @@ export const extractDoses = (entry?: GazetteEntry | null): string => {
 
 /**
  * JSON-encodes composition + specifications into the single string field.
- * Returns "" when there is nothing to store, so an empty record stays empty
- * rather than persisting a hollow envelope.
+ *
+ * @deprecated The API now has `biostimulant_composition_new` and
+ * `biostimulant_specification`, so nothing writes this format any more. Kept
+ * because `decodeComposition` must keep reading records that were written
+ * with it, and the round-trip test is what pins that format down.
  */
 export const encodeComposition = (data: Partial<StructuredComposition>): string => {
     const composition = data.composition ?? [];
@@ -231,3 +245,94 @@ export const decodeComposition = (raw: unknown): DecodedComposition => {
 export const hasStructuredRows = (decoded: DecodedComposition): boolean =>
     decoded.kind === "structured" &&
     (decoded.composition.length > 0 || decoded.specifications.length > 0);
+
+/**
+ * A cell value as text. Numbers are stringified because the API types these
+ * rows as `Dict[str, Any]` — "3.0" and 3.0 both arrive in practice, and a
+ * number would render as blank if it were required to be a string.
+ */
+const asCellText = (value: unknown): string => {
+    if (typeof value === "string") return value.trim();
+    if (typeof value === "number") return String(value);
+    return "";
+};
+
+/**
+ * Reads `biostimulant_composition_new` into typed rows.
+ *
+ * The field is declared `Optional[List[Dict[str, Any]]]`, so its shape is a
+ * convention rather than a contract. Alternate key spellings are accepted and
+ * anything that yields two empty cells is dropped, so a malformed row can
+ * never render as a blank line on the public page.
+ */
+export const normalizeCompositionRows = (raw: unknown): CompositionRow[] => {
+    if (!Array.isArray(raw)) return [];
+
+    return raw.reduce<CompositionRow[]>((rows, item) => {
+        if (!item || typeof item !== "object") return rows;
+
+        const row = item as Record<string, unknown>;
+        const ingredient = asCellText(row.ingredient ?? row.name ?? row.parameter);
+        const content = asCellText(row.content ?? row.value);
+
+        if (ingredient || content) rows.push({ ingredient, content });
+        return rows;
+    }, []);
+};
+
+/** Reads `biostimulant_specification` into typed rows. See above. */
+export const normalizeSpecificationRows = (raw: unknown): SpecificationRow[] => {
+    if (!Array.isArray(raw)) return [];
+
+    return raw.reduce<SpecificationRow[]>((rows, item) => {
+        if (!item || typeof item !== "object") return rows;
+
+        const row = item as Record<string, unknown>;
+        const parameter = asCellText(row.parameter ?? row.name ?? row.ingredient);
+        const value = asCellText(row.value ?? row.content);
+
+        if (parameter || value) rows.push({ parameter, value });
+        return rows;
+    }, []);
+};
+
+/** The composition-carrying subset of a QR's `product_detail`. */
+export interface ProductCompositionSource {
+    biostimulant_composition_new?: unknown;
+    biostimulant_specification?: unknown;
+    biostimulant_composition?: unknown;
+}
+
+export interface ResolvedComposition extends StructuredComposition {
+    /**
+     * Free prose from the legacy string field, and only that. Empty whenever
+     * structured rows were found, so a caller can render the tables and the
+     * prose row from the same result without showing both.
+     */
+    legacyText: string;
+}
+
+/**
+ * Decides which of the three stored shapes a QR actually uses.
+ *
+ * Precedence: the real array fields, then the legacy JSON envelope inside
+ * `biostimulant_composition`, then that same field as plain prose. New records
+ * take the first branch; every record written before the API fields existed
+ * keeps rendering through the other two, unchanged.
+ */
+export const resolveProductComposition = (
+    detail?: ProductCompositionSource | null
+): ResolvedComposition => {
+    const composition = normalizeCompositionRows(detail?.biostimulant_composition_new);
+    const specifications = normalizeSpecificationRows(detail?.biostimulant_specification);
+
+    if (composition.length > 0 || specifications.length > 0) {
+        return { composition, specifications, legacyText: "" };
+    }
+
+    const decoded = decodeComposition(detail?.biostimulant_composition);
+
+    return decoded.kind === "structured"
+        ? { composition: decoded.composition, specifications: decoded.specifications, legacyText: "" }
+        : { composition: [], specifications: [], legacyText: decoded.value };
+};
