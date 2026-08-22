@@ -216,9 +216,9 @@ const GuestProductDetail: React.FC = () => {
         ]
         : [];
 
-    // Rows shown ahead of the composition tables. Product Information and the
-    // batch dates are split into `trailingDetails` so the composition and
-    // specifications render before them.
+    // Rows shown ahead of the composition tables. Manufacturer details, Product
+    // Information and the batch dates are split into `trailingDetails` so the
+    // composition and specifications render before them.
     const primaryDetails = (
         isBiopesticideCategory
             ? [
@@ -240,7 +240,6 @@ const GuestProductDetail: React.FC = () => {
                 createDetailItem('Crops', product_detail.crops),
                 createDetailItem('Dosage', product_detail.doses),
                 createDetailItem('Application method', product_detail.application_method),
-                createDetailItem('Manufacturer details', product_detail.manufacturer_details),
             ]
     ).filter(Boolean) as { label: string; value: string }[];
 
@@ -248,6 +247,7 @@ const GuestProductDetail: React.FC = () => {
         isBiopesticideCategory
             ? []
             : [
+                createDetailItem('Manufacturer details', product_detail.manufacturer_details),
                 createDetailItem('Product Information', product_detail.description),
                 ...dateDetails,
             ]
@@ -271,7 +271,7 @@ const GuestProductDetail: React.FC = () => {
                     display: 'grid',
                     gridTemplateColumns: { xs: '1fr', sm: '280px 1fr' },
                     gap: { xs: 0.5, sm: 2 },
-                    px: 2.5,
+                    px: { xs: 2, sm: 2.5 },
                     py: 2,
                     bgcolor: index % 2 === 0 ? 'grey.50' : 'white',
                     borderBottom: index === totalDetailRows - 1 ? 'none' : '1px solid',
@@ -313,32 +313,26 @@ const GuestProductDetail: React.FC = () => {
     return (
         <Box sx={{bgcolor: '#f4f6f8', minHeight: '100vh' }}>
 
-            <Box sx={{ maxWidth: '1200px', mx: 'auto',py:2 }}>
+            <Box sx={{ maxWidth: '1200px', mx: 'auto', py: 2, px: { xs: 2, md: 3 } }}>
                 {/* Title Section */}
-                <Box sx={{ textAlign: 'center', mb: 6 }}>
-                    <Chip
-                        label={`Authenticated Code: ${product_master.product_code}`}
-                        sx={{ bgcolor: alpha('#13ae47', 0.1), color: '#13ae47', fontWeight: 800, fontSize: '11px', mb: 2, height: 28 }}
-                    />
+                <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 6 } }}>
+
                     {/* Company name leads at h2 for every category; the product
-                        name sits below it as the smaller line. */}
-                    <Typography variant="h2" sx={{ fontWeight: 900, color: '#1a1a1a', letterSpacing: '-0.03em', mb: 1 }}>
+                        name sits below it at h3 — bold, one step smaller. */}
+                    <Typography variant="h2" sx={{ fontWeight: 900, color: '#1a1a1a', letterSpacing: '-0.03em', mb: 1, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '1.875rem' }, wordBreak: 'break-word' }}>
                         {company.company_name}
                     </Typography>
-                    <Typography variant="subtitle1" sx={{ color: '#0f5132', fontWeight: 800, mb: 0.5 }}>
+                    <Typography variant="h3" sx={{ color: '#0f5132', fontWeight: 800, letterSpacing: '-0.02em', mb: 0.5, fontSize: { xs: '1.125rem', sm: '1.35rem', md: '1.5rem' }, wordBreak: 'break-word' }}>
                         {product_master.name || product_detail.biostimulant_title}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                        Secure product verification details
                     </Typography>
                 </Box>
 
                 <Grid container spacing={3}>
                     <Grid item xs={12}>
                         <Stack spacing={3}>
-                            <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
+                            <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3, md: 4 }, borderRadius: 4 }}>
                                 <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
-                                    <Box sx={{ width: 32, height: 32, bgcolor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#13ae47' }}>
+                                    <Box sx={{ width: 32, height: 32, flexShrink: 0, bgcolor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#13ae47' }}>
                                         <Description fontSize="small" />
                                     </Box>
                                     <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
@@ -353,7 +347,7 @@ const GuestProductDetail: React.FC = () => {
                                     {hasCompositionTables && (
                                         <Box
                                             sx={{
-                                                px: 2.5,
+                                                px: { xs: 2, sm: 2.5 },
                                                 py: 3,
                                                 bgcolor: 'white',
                                                 borderBottom: trailingDetails.length > 0 ? '1px solid' : 'none',
@@ -361,7 +355,7 @@ const GuestProductDetail: React.FC = () => {
                                             }}
                                         >
                                             <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
-                                                <Box sx={{ width: 32, height: 32, bgcolor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#13ae47' }}>
+                                                <Box sx={{ width: 32, height: 32, flexShrink: 0, bgcolor: alpha('#13ae47', 0.1), borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#13ae47' }}>
                                                     <Science fontSize="small" />
                                                 </Box>
                                                 <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>
@@ -390,9 +384,9 @@ const GuestProductDetail: React.FC = () => {
                             </Paper>
 
                             {!isBiopesticideCategory && (
-                                <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
+                                <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3, md: 4 }, borderRadius: 4 }}>
                                     <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
-                                        <Box sx={{ width: 32, height: 32, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
+                                        <Box sx={{ width: 32, height: 32, flexShrink: 0, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
                                             <Domain fontSize="small" />
                                         </Box>
                                         <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>Manufacturer Information</Typography>
@@ -418,25 +412,6 @@ const GuestProductDetail: React.FC = () => {
                                                         <Typography variant="caption">Authorized Manufacturer</Typography>
                                                     </Stack>
                                                 )}
-                                            </Grid>
-                                        ))}
-                                    </Grid>
-                                </Paper>
-                            )}
-
-                            {!isBiopesticideCategory && (
-                                <Paper variant="outlined" sx={{ p: { xs: 3, md: 4 }, borderRadius: 4 }}>
-                                    <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
-                                        <Box sx={{ width: 32, height: 32, bgcolor: '#f5f5f5', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
-                                            <Description fontSize="small" />
-                                        </Box>
-                                        <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase' }}>Other Details</Typography>
-                                    </Stack>
-                                    <Grid container spacing={2}>
-                                        {otherDetails.map((item) => (
-                                            <Grid item xs={12} md={4} key={item.label}>
-                                                <Typography variant="caption" color="text.secondary">{item.label}</Typography>
-                                                <Typography variant="body2" fontWeight={800}>{item.value}</Typography>
                                             </Grid>
                                         ))}
                                     </Grid>
