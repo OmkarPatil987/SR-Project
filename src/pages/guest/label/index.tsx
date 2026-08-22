@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux';
 import { showSnackbar } from '../../../redux/reducer/snackbarSlice';
 import { FetchPublicProductLabelService } from '../../../utils/services/guest.service';
 import { PublicLabelResponse } from '../../../utils/dto/response/label';
+import { qrArtworkSx } from '../../../utils/qrDownload';
 
 const ACCENT = '#13ae47';
 
@@ -219,7 +220,7 @@ const GuestLabelDetail: React.FC = () => {
                                     Scan to Verify
                                 </Typography>
                             </Stack>
-                            <Box component="img" src={product.qr_path} alt="QR code" sx={{ width: 140, height: 140, mx: 'auto' }} />
+                            <Box component="img" src={product.qr_path} alt="QR code" sx={{ width: 140, height: 140, mx: 'auto', ...qrArtworkSx }} />
                         </Paper>
                     )}
                 </Stack>

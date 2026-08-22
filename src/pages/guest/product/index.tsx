@@ -231,9 +231,10 @@ const GuestProductDetail: React.FC = () => {
             : [
                 ...(isBiostimulantCategory ? [createDetailItem('Gazette No.', product_detail.gazette_notification_number)] : []),
                 ...(isBiostimulantCategory ? [createDetailItem('Gazette Date', gazetteDate)] : []),
-                // The Product Name chosen in Section 1 is the title of record;
-                // the gazette title is only a fallback for QRs saved without one.
-                createDetailItem(`Title of ${categorySingularLabel}`, product_master.name || product_detail.biostimulant_title),
+                // The gazette title picked on the QR form is the title of record — it
+                // names the notified product, which the brand name does not. The product
+                // name is only a fallback for QRs saved without a gazette selection.
+                createDetailItem(`Title of ${categorySingularLabel}`, product_detail.biostimulant_title || product_master.name),
                 // Structured composition renders as a table below, not as a row here.
                 createDetailItem(`Composition of ${categorySingularLabel}`, legacyCompositionText),
                 createDetailItem('Crops', product_detail.crops),

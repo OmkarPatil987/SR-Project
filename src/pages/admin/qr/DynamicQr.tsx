@@ -22,7 +22,7 @@ import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import { resetRefresh } from "../../../redux/reducer/refreshSlice";
 import { FetchQRListService, FetchProductListService, FetchCompanyListService } from "../../../utils/services/product.service";
 import { PRODUCT_CATEGORY_OPTIONS, getProductCategoryOption } from "../../../utils/productCategory";
-import { downloadQrAsJpg } from "../../../utils/qrDownload";
+import { downloadQrAsJpg, qrArtworkSx } from "../../../utils/qrDownload";
 
 const DynamicQRList: React.FC = () => {
     const navigate = useNavigate();
@@ -235,7 +235,7 @@ const DynamicQRList: React.FC = () => {
                                                     src={row.qr_path}
                                                     variant="rounded"
                                                     onClick={() => handleOpenPreview(row)}
-                                                    sx={{ width: 48, height: 48, border: '1px solid #d1e6dc', cursor: 'pointer', transition: '0.2s', '&:hover': { transform: 'scale(1.1)' } }}
+                                                    sx={{ width: 48, height: 48, border: '1px solid #d1e6dc', cursor: 'pointer', transition: '0.2s', '&:hover': { transform: 'scale(1.1)' }, '& .MuiAvatar-img': qrArtworkSx }}
                                                 />
                                             </Tooltip>
                                         </TableCell>
@@ -319,7 +319,7 @@ const DynamicQRList: React.FC = () => {
                     {selectedQR && (
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                             <Box sx={{ p: 2, bgcolor: '#fff', borderRadius: 4, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', mb: 3 }}>
-                                <Box component="img" src={selectedQR.qr_path} alt="QR" sx={{ width: 240, height: 240, display: 'block' }} />
+                                <Box component="img" src={selectedQR.qr_path} alt="QR" sx={{ width: 240, height: 240, display: 'block', ...qrArtworkSx }} />
                             </Box>
                             <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a', mb: 0.5 }}>{selectedQR.product_name}</Typography>
                             <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>{selectedQR.company_name}</Typography>

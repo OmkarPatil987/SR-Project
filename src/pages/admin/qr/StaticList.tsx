@@ -17,7 +17,7 @@ import { showSnackbar } from "../../../redux/reducer/snackbarSlice";
 import { resetRefresh } from "../../../redux/reducer/refreshSlice";
 import { FetchQRListService, FetchProductListService, FetchCompanyListService } from "../../../utils/services/product.service";
 import { PRODUCT_CATEGORY_OPTIONS, getProductCategoryOption } from "../../../utils/productCategory";
-import { downloadQrAsJpg } from "../../../utils/qrDownload";
+import { downloadQrAsJpg, qrArtworkSx } from "../../../utils/qrDownload";
 
 const StaticQRList: React.FC = () => {
     const navigate = useNavigate();
@@ -214,7 +214,7 @@ const StaticQRList: React.FC = () => {
                                                     src={row.qr_path}
                                                     variant="rounded"
                                                     onClick={() => handleOpenPreview(row)}
-                                                    sx={{ width: 48, height: 48, border: '1px solid #e2e8f0', p: 0.5, bgcolor: '#fff', cursor: 'pointer', '&:hover': { transform: 'scale(1.05)' }, transition: '0.2s' }}
+                                                    sx={{ width: 48, height: 48, border: '1px solid #e2e8f0', p: 0.5, bgcolor: '#fff', cursor: 'pointer', '&:hover': { transform: 'scale(1.05)' }, transition: '0.2s', '& .MuiAvatar-img': qrArtworkSx }}
                                                 />
                                             </Tooltip>
                                         </TableCell>
@@ -326,7 +326,8 @@ const StaticQRList: React.FC = () => {
                                     sx={{
                                         width: 240,
                                         height: 240,
-                                        display: 'block'
+                                        display: 'block',
+                                        ...qrArtworkSx
                                     }}
                                 />
                             </Box>
